@@ -7,7 +7,6 @@ const CartPage = () => {
   const {
     itens,
     removeFromCart,
-    cleanCart,
     calcTotal,
     increaseQuantity,
     decreaseQuantity,

@@ -1,7 +1,7 @@
 // src/pages/SchoolsPage.tsx
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Album, School, Search } from 'lucide-react'
+import { School, Search } from 'lucide-react'
 
 // Tipo para a school
 interface School {

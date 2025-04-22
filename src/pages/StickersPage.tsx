@@ -1,7 +1,7 @@
 // src/pages/StickersPage.tsx
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingCart, Plus, Check } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Check } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { Album, Sticker } from '../types';
 
