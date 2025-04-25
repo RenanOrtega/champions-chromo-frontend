@@ -60,12 +60,12 @@ const PixQrCode: React.FC<PixQrCodeProps> = ({
 
   return (
     <div className="bg-gray-100 p-6 rounded-lg">
-      <p className="text-gray-700 font-medium mb-2">QR Code PIX</p>
+      <p className="text-gray-700 font-medium mb-2 text-center">QR Code PIX</p>
 
       {brCodeBase64 ? (
         <div className="mx-auto mb-4 flex items-center justify-center">
           <img
-            src={`data:image/png;base64,${brCodeBase64}`}
+            src={`${brCodeBase64}`}
             alt="QR Code PIX"
             className="w-48 h-48"
           />
@@ -88,7 +88,7 @@ const PixQrCode: React.FC<PixQrCodeProps> = ({
           <p className="text-sm font-medium mb-1">Código PIX Copia e Cola:</p>
           <div className="flex items-center justify-between bg-white px-3 py-2 rounded border border-gray-300">
             <div className="truncate text-xs text-gray-600 flex-1 pr-2">
-              {brCode.substring(0, 30)}...
+              {brCode}
             </div>
             <button
               onClick={handleCopyBrCode}

@@ -95,3 +95,7 @@ export interface Address {
   city: string,
   state: string
 }
+
+export interface PixStatus {
+  status: "PENDING" | "PAID" | "CANCELED",
+}

@@ -172,7 +172,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return total + stickersPrice;
     }, 0);
     
-    return Math.floor(totalInDecimal * 100);
+    return totalInDecimal;
   };
 
   return (

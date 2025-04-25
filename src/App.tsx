@@ -7,6 +7,7 @@ import StickersPage from "./pages/StickersPage";
 import { CartProvider } from "./context/CartContext";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
+import PixPage from "./pages/PixPage";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
           <Route path="albums/:albumId/figurinhas" element={<StickersPage />} />
           <Route path="cart" element={<CartPage />} />
           <Route path="checkout" element={<CheckoutPage />} />
+          <Route path="checkout/pix" element={<PixPage />} />
         </Route>
       </Routes>
     </CartProvider>
