@@ -1,4 +1,4 @@
-import { School } from "../../types";
+import { School } from "../../types/school";
 import { apiRequest } from "../ApiClient";
 
 export const fetchSchools = async (): Promise<School[]> => {

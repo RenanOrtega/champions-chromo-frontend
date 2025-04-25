@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { School as SchoolIcon, Search } from 'lucide-react'
-import { School } from '../types';
 import { fetchSchools } from '../clients/school';
+import { School } from '../types/school';
 
 const SchoolsPage = () => {
   const [schools, setSchools] = useState<School[]>([]);
