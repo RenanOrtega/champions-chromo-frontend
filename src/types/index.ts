@@ -7,7 +7,6 @@ export interface Customer {
 
 export interface Payment {
   amount: number,
-  fee: number,
 }
 
 export interface Address {

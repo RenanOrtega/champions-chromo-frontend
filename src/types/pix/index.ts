@@ -26,11 +26,11 @@ export interface PixQrCodeResponseData {
 }
 
 export interface CreateOrder {
-  integrationId: string,
   payment: Payment,
   address: Address,
   customer: Customer,
-  status: string
+  expiresIn: number,
+  description: string
 }
 
 export type PixStatus = "PENDING" | "PAID" | "CANCELED";

@@ -1,31 +1,7 @@
-import { Address } from "../../types";
-import { CreateOrder, GeneratePixQrCode, PixQrCodeResponse, PixStatus } from "../../types/pix";
-import { apiRequest as abacatePayRequest } from "../AbacatePayClient";
+import { CreateOrder, PixQrCodeResponse, PixStatus } from "../../types/pix";
 import { apiRequest } from "../ApiClient";
 
-const convertToCents = (amount: number) => {
-  return Math.floor(amount * 100);
-}
-
-export const createQrCodePix = async (generatePixQrCode: GeneratePixQrCode, address: Address): Promise<PixQrCodeResponse> => {
-  const pixQrCodeResponse = await abacatePayRequest<PixQrCodeResponse>('/pixQrCode/create', 'POST', { ...generatePixQrCode, amount: convertToCents(generatePixQrCode.amount) });
-  if (pixQrCodeResponse.data) {
-    const createOrderRequest: CreateOrder = {
-      integrationId: pixQrCodeResponse.data.id,
-      payment: {
-        amount: convertToCents(generatePixQrCode.amount),
-        fee: pixQrCodeResponse.data.platformFee || 0,
-      },
-      address: address,
-      customer: generatePixQrCode.customer,
-      status: 'PENDING'
-    }
-    await createOrder(createOrderRequest);
-  }
-  return pixQrCodeResponse;
-}
-
-export const createOrder = async (createOrder: CreateOrder): Promise<void> => {
+export const createPixOrder = async (createOrder: CreateOrder): Promise<PixQrCodeResponse> => {
   return await apiRequest('/pix/order', 'POST', createOrder);
 }
 

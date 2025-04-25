@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { FormData } from "./CheckoutPage";
 import PixQrCode from "../components/PixQrCode";
-import { simulatePayment, checkStatus, createQrCodePix } from "../clients/pix";
-import { GeneratePixQrCode, PixQrCodeResponseData, PixStatus } from "../types/pix";
+import { simulatePayment, checkStatus, createPixOrder } from "../clients/pix";
+import { CreateOrder, PixQrCodeResponseData, PixStatus } from "../types/pix";
 
 interface LocationState {
   formData: FormData;
@@ -80,6 +80,7 @@ const PixPage = () => {
   const [statusPolling, setStatusPolling] = useState<NodeJS.Timeout | null>(null);
   const [pixData, setPixData] = useState<PixQrCodeResponseData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false); // Add this state to track if we've tried to load
 
   useEffect(() => {
     if (!formData) {
@@ -87,6 +88,10 @@ const PixPage = () => {
       return;
     }
   }, [formData, navigate]);
+
+  const convertToCents = (amount: number) => {
+    return Math.floor(amount * 100);
+  }
 
   useEffect(() => {
     const loadOrGeneratePixPayment = async () => {
@@ -118,8 +123,8 @@ const PixPage = () => {
         const cleanCpf = formData.personalInfo.cpf.replace(/\D/g, '');
         const cleanPhone = formData.personalInfo.phone.replace(/\D/g, '');
 
-        const pixRequest: GeneratePixQrCode = {
-          amount: totalAmount,
+        const createOrder: CreateOrder = {
+          payment: { amount: convertToCents(totalAmount) },
           expiresIn: 3600,
           description: `Pedido de figurinhas - ${new Date().toISOString()}`,
           customer: {
@@ -128,17 +133,17 @@ const PixPage = () => {
             taxId: cleanCpf,
             cellphone: cleanPhone
           },
+          address: {
+            zipCode: formData.deliveryInfo.cep,
+            street: formData.deliveryInfo.street,
+            number: formData.deliveryInfo.number,
+            complement: formData.deliveryInfo.complement,
+            neighborhood: formData.deliveryInfo.neighborhood,
+            city: formData.deliveryInfo.city,
+            state: formData.deliveryInfo.state
+          }
         };
-
-        const response = await createQrCodePix(pixRequest, {
-          zipCode: formData.deliveryInfo.cep,
-          street: formData.deliveryInfo.street,
-          number: formData.deliveryInfo.number,
-          complement: formData.deliveryInfo.complement,
-          neighborhood: formData.deliveryInfo.neighborhood,
-          city: formData.deliveryInfo.city,
-          state: formData.deliveryInfo.state
-        });
+        const response = await createPixOrder(createOrder);
 
         if (response.error) {
           setError(response.error);
@@ -159,13 +164,15 @@ const PixPage = () => {
         setError('Failed to generate PIX code');
       } finally {
         setIsGeneratingPix(false);
+        setHasAttemptedLoad(true); // Mark that we've attempted to load
       }
     };
 
-    if (formData && !isGeneratingPix && !pixData) {
+    // Only attempt to load if we haven't tried yet or if we haven't had an error
+    if (formData && !isGeneratingPix && !pixData && !hasAttemptedLoad) {
       loadOrGeneratePixPayment();
     }
-  }, [formData, isGeneratingPix, pixData, totalAmount]);
+  }, [formData, isGeneratingPix, pixData, totalAmount, hasAttemptedLoad]);
 
   useEffect(() => {
     if (!pixData?.id) return;
@@ -216,6 +223,8 @@ const PixPage = () => {
     localStorage.removeItem('pixQrCodeCache');
     setPixData(null);
     setPaymentStatus("PENDING");
+    setError(null);
+    setHasAttemptedLoad(false); // Reset this so we can try again
   };
 
   if (!formData) {
