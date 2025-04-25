@@ -2,8 +2,9 @@ import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { ArrowLeft, CreditCard, Truck, User, CheckCircle, Loader2 } from 'lucide-react';
+import { usePayment } from '../hooks/usePayment';
+import PixQrCode from '../components/PixQrCode';
 
-// Interfaces para os dados do formulário
 interface PersonalInfo {
   name: string;
   email: string;
@@ -35,7 +36,6 @@ interface FormData {
   paymentInfo: PaymentInfo;
 }
 
-// Interface para a resposta da API ViaCEP
 interface ViaCepResponse {
   cep: string;
   logradouro: string;
@@ -48,10 +48,21 @@ interface ViaCepResponse {
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
-  const { itens, calcTotal } = useCart();
+  const { itens, calcTotal, cleanCart } = useCart();
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isLoadingCep, setIsLoadingCep] = useState<boolean>(false);
   const [cepError, setCepError] = useState<string>('');
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [orderCompleted, setOrderCompleted] = useState<boolean>(false);
+  
+  const { 
+    isLoading: isPaymentLoading, 
+    error: paymentError, 
+    pixData, 
+    generatePix, 
+    finalizeOrder 
+  } = usePayment();
+
   const [formData, setFormData] = useState<FormData>({
     personalInfo: {
       name: '',
@@ -166,14 +177,108 @@ const CheckoutPage = () => {
     }
   }, [formData.deliveryInfo.cep]);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  // Gerar PIX quando o método de pagamento for selecionado
+  useEffect(() => {
+    if (formData.paymentInfo.method === 'pix' && currentStep === 3) {
+      const generatePixPayment = async () => {
+        // Limpar o CPF para enviar apenas dígitos
+        const cleanCpf = formData.personalInfo.cpf.replace(/\D/g, '');
+        const cleanPhone = formData.personalInfo.phone.replace(/\D/g, '');
+        
+        try {
+          await generatePix({
+            amount: calcTotal(),
+            customer: {
+              name: formData.personalInfo.name,
+              email: formData.personalInfo.email,
+              taxId: cleanCpf,
+              cellphone: cleanPhone
+            },
+            address: {
+              zipCode: formData.deliveryInfo.cep,
+              street: formData.deliveryInfo.street,
+              number: formData.deliveryInfo.number,
+              complement: formData.deliveryInfo.complement,
+              neighborhood: formData.deliveryInfo.neighborhood,
+              city: formData.deliveryInfo.city,
+              state: formData.deliveryInfo.state
+            }
+          });
+        } catch (err) {
+          console.error('Erro ao gerar PIX:', err);
+        }
+      };
+
+      generatePixPayment();
+    }
+  }, [formData.paymentInfo.method, currentStep]);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
     if (currentStep < 3) {
       setCurrentStep(currentStep + 1);
-    } else {
-      // Aqui você implementaria a lógica para processar o pagamento e finalizar o pedido
-      alert('Pedido realizado com sucesso!');
-      navigate('/order-confirmation'); // Redirecionar para página de confirmação
+      return;
+    }
+    
+    // Processar o pagamento e finalizar o pedido
+    setIsSubmitting(true);
+    
+    try {
+      if (formData.paymentInfo.method === 'pix' && pixData?.id) {
+        // Para PIX, registramos o pedido e redirecionamos
+        const cleanCpf = formData.personalInfo.cpf.replace(/\D/g, '');
+        const cleanPhone = formData.personalInfo.phone.replace(/\D/g, '');
+        
+        await finalizeOrder(pixData.id, {
+          amount: calcTotal(),
+          customer: {
+            name: formData.personalInfo.name,
+            email: formData.personalInfo.email,
+            taxId: cleanCpf,
+            cellphone: cleanPhone
+          },
+          address: {
+            zipCode: formData.deliveryInfo.cep,
+            street: formData.deliveryInfo.street,
+            number: formData.deliveryInfo.number,
+            complement: formData.deliveryInfo.complement,
+            neighborhood: formData.deliveryInfo.neighborhood,
+            city: formData.deliveryInfo.city,
+            state: formData.deliveryInfo.state
+          }
+        });
+        
+        setOrderCompleted(true);
+        // Esperar alguns segundos antes de redirecionar
+        setTimeout(() => {
+          cleanCart(); // Limpar o carrinho
+          navigate('/order-confirmation', { 
+            state: { 
+              orderId: pixData.id,
+              paymentMethod: 'pix'
+            } 
+          });
+        }, 2000);
+      } else if (formData.paymentInfo.method === 'creditCard') {
+        // Simular o processamento do cartão (na vida real você usaria uma API de pagamento)
+        setTimeout(() => {
+          setOrderCompleted(true);
+          setTimeout(() => {
+            cleanCart(); // Limpar o carrinho
+            navigate('/order-confirmation', { 
+              state: { 
+                orderId: `cc-${Date.now()}`,
+                paymentMethod: 'creditCard'
+              } 
+            });
+          }, 2000);
+        }, 1500);
+      }
+    } catch (error) {
+      console.error('Erro ao finalizar o pedido:', error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -521,23 +626,37 @@ const CheckoutPage = () => {
                 )}
 
                 {formData.paymentInfo.method === 'pix' && (
-                  <div className="mt-4 text-center">
-                    <div className="bg-gray-100 p-6 rounded-lg">
-                      <p className="text-gray-700 mb-2">QR Code PIX</p>
-                      <div className="w-48 h-48 bg-gray-300 mx-auto mb-4 flex items-center justify-center">
-                        <span className="text-gray-500">QR Code Placeholder</span>
-                      </div>
-                      <p className="text-sm text-gray-600">Escaneie o QR Code para pagar</p>
-                    </div>
+                  <div className="mt-4">
+                    <PixQrCode
+                      isLoading={isPaymentLoading}
+                      error={paymentError}
+                      brCode={pixData?.brCode}
+                      brCodeBase64={pixData?.brCodeBase64}
+                      amount={calcTotal()}
+                      expiresAt={pixData?.expiresAt ? new Date(pixData.expiresAt) : undefined}
+                    />
                   </div>
                 )}
+                
                 <div className="pt-4">
                   <button
                     type="submit"
-                    disabled={!formData.paymentInfo.method}
+                    disabled={!formData.paymentInfo.method || isSubmitting || (formData.paymentInfo.method === 'pix' && isPaymentLoading)}
                     className="w-full bg-primary-600 text-white py-2 rounded-md hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
                   >
-                    Finalizar Pedido
+                    {isSubmitting ? (
+                      <div className="flex items-center justify-center">
+                        <Loader2 className="animate-spin h-5 w-5 mr-2" />
+                        Processando...
+                      </div>
+                    ) : orderCompleted ? (
+                      <div className="flex items-center justify-center">
+                        <CheckCircle className="h-5 w-5 mr-2" />
+                        Pedido Realizado!
+                      </div>
+                    ) : (
+                      "Finalizar Pedido"
+                    )}
                   </button>
                 </div>
               </div>

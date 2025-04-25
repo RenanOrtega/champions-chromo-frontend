@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Album, Sticker } from '../types';
 
-// Update CartItem to store stickers with quantities
+// Update CartSticker to store stickers with quantities
 export interface CartSticker extends Sticker {
   quantity: number;
 }
@@ -14,11 +14,11 @@ export interface CartItem {
 interface CartContextType {
   itens: CartItem[];
   addToCart: (album: Album, stickers: Sticker[]) => void;
-  removeFromCart: (albumId: number) => void;
+  removeFromCart: (albumId: string) => void;
   cleanCart: () => void;
-  increaseQuantity: (albumId: number, stickerId: number) => void;
-  decreaseQuantity: (albumId: number, stickerId: number) => void;
-  removeSticker: (albumId: number, stickerId: number) => void;
+  increaseQuantity: (albumId: string, stickerId: string) => void;
+  decreaseQuantity: (albumId: string, stickerId: string) => void;
+  removeSticker: (albumId: string, stickerId: string) => void;
   calcTotal: () => number;
 }
 
@@ -27,14 +27,43 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   // Load items from localStorage when component mounts
   const [itens, setItens] = useState<CartItem[]>(() => {
-    const savedItens = localStorage.getItem('cartItems');
-    return savedItens ? JSON.parse(savedItens) : [];
+    try {
+      const savedData = localStorage.getItem('cartItems');
+  
+      if (!savedData) return [];
+  
+      const { items, updatedAt } = JSON.parse(savedData);
+      const expirationHours = 73;
+      const now = new Date().getTime();
+      const lastUpdate = new Date(updatedAt).getTime();
+  
+      const hoursPassed = (now - lastUpdate) / (1000 * 60 * 60);
+      if (hoursPassed > expirationHours) {
+        localStorage.removeItem('cartItems');
+        return [];
+      }
+  
+      return items ?? [];
+    } catch (error) {
+      console.error('Error parsing cart items from localStorage:', error);
+      return [];
+    }
   });
+  
 
   // Save items to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('cartItems', JSON.stringify(itens));
+    try {
+      const dataToSave = {
+        items: itens,
+        updatedAt: new Date().toISOString()
+      };
+      localStorage.setItem('cartItems', JSON.stringify(dataToSave));
+    } catch (error) {
+      console.error('Error saving cart items to localStorage:', error);
+    }
   }, [itens]);
+
 
   const addToCart = (album: Album, stickers: Sticker[]) => {
     setItens(prevItens => {
@@ -74,7 +103,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const increaseQuantity = (albumId: number, stickerId: number) => {
+  const increaseQuantity = (albumId: string, stickerId: string) => {
     setItens(prevItens => {
       return prevItens.map(item => {
         if (item.album.id === albumId) {
@@ -93,7 +122,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const decreaseQuantity = (albumId: number, stickerId: number) => {
+  const decreaseQuantity = (albumId: string, stickerId: string) => {
     setItens(prevItens => {
       return prevItens.map(item => {
         if (item.album.id === albumId) {
@@ -112,7 +141,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const removeSticker = (albumId: number, stickerId: number) => {
+  const removeSticker = (albumId: string, stickerId: string) => {
     setItens(prevItems => {
       const updatedItems = prevItems.map(item => {
         if (item.album.id === albumId) {
@@ -128,7 +157,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     });
   };
 
-  const removeFromCart = (albumId: number) => {
+  const removeFromCart = (albumId: string) => {
     setItens(itens.filter(item => item.album.id !== albumId));
   };
 
@@ -137,11 +166,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const calcTotal = () => {
-    return itens.reduce((total, item) => {
+    const totalInDecimal = itens.reduce((total, item) => {
       const stickersPrice = item.stickers.reduce((sum, sticker) =>
         sum + (sticker.price * sticker.quantity), 0);
       return total + stickersPrice;
     }, 0);
+    
+    return Math.floor(totalInDecimal * 100);
   };
 
   return (

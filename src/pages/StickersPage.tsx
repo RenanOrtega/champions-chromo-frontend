@@ -3,43 +3,21 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingCart, Check } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { Album, Sticker } from '../types';
+import { Album, Sticker, StickerItem } from '../types';
+import { fetchAlbumById } from '../clients/album';
 
-// Dados mockados para figurinhas
-const stickersMock: Record<number, Sticker[]> = {
-  101: [
-    { id: 1001, type: 'common', image: "/sticker1.jpg", price: 9.90 },
-    { id: 1002, type: 'common', image: "/sticker2.jpg", price: 9.90 },
-    { id: 1003, type: 'common', image: "/sticker3.jpg", price: 9.90 },
-    { id: 1004, type: 'legend', image: "/sticker4.jpg", price: 12.90 },
-    { id: 1005, type: 'a4', image: "/sticker5.jpg", price: 19.90 },
-    { id: 1006, type: 'quadro', image: "/sticker6.jpg", price: 29.90 },
-  ],
-  102: [
-    { id: 2001, type: 'common', image: "/sticker7.jpg", price: 8.90 },
-    { id: 2002, type: 'common', image: "/sticker8.jpg", price: 8.90 },
-    { id: 2003, type: 'common', image: "/sticker9.jpg", price: 8.90 },
-    { id: 2004, type: 'legend', image: "/sticker10.jpg", price: 11.90 },
-    { id: 2005, type: 'a4', image: "/sticker11.jpg", price: 18.90 },
-  ],
-  // Dados para outros álbuns
-};
-
-// Dados mockados para álbuns
-const albumsMock: Record<number, Album> = {
-  101: { id: 101, name: "Álbum 2025 - Colégio Santa Maria", description: "Álbum completo com todas as turmas", price: 49.90, image: "/album1.jpg", year: "2025" },
-  102: { id: 102, name: "Álbum 2025 - Turmas do Ensino Fundamental", description: "Álbum com turmas do 1º ao 5º ano", price: 39.90, image: "/album2.jpg", year: "2025" },
-  103: { id: 103, name: "Álbum 2025 - Turmas do Ensino Médio", description: "Álbum com turmas do 1º ao 3º ano do EM", price: 39.90, image: "/album3.jpg", year: "2025" },
-  201: { id: 201, name: "Álbum 2025 - School Municipal João Paulo", description: "Álbum completo com todas as turmas", price: 45.90, image: "/album4.jpg", year: "2025" },
-  202: { id: 202, name: "Álbum 2025 - Anos Iniciais", description: "Álbum com turmas do 1º ao 5º ano", price: 35.90, image: "/album5.jpg", year: "2025" },
-};
-
-// Descrições para cada tipo de figurinha
 const stickerTypeInfo = {
   'common': { name: 'Comum', description: 'Figurinha padrão 7x5cm' },
+  'frame': { name: 'Quadro', description: 'Quadro emoldurado 15x20cm' },
   'legend': { name: 'Lenda', description: 'Figurinha especial metalizada' },
-  'quadro': { name: 'Quadro', description: 'Quadro emoldurado 15x20cm' },
   'a4': { name: 'Folha A4', description: 'Impressão em folha A4' }
+};
+
+const stickerPrices = {
+  'common': 9.90,
+  'frame': 29.90,
+  'legend': 12.90,
+  'a4': 19.90
 };
 
 const StickersPage = () => {
@@ -49,22 +27,78 @@ const StickersPage = () => {
   const [loading, setLoading] = useState(true);
   const [selectedStickers, setSelectedStickers] = useState<Sticker[]>([]);
   const [filter, setFilter] = useState<'common' | 'legend' | 'quadro' | 'a4' | ''>('');
+  const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { addToCart } = useCart();
 
-  // Estado para controlar o feedback de sucesso
   const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
-    if (albumId) {
-      // Simulando chamada API para obter figurinhas do álbum
-      setTimeout(() => {
-        const id = parseInt(albumId);
-        setStickers(stickersMock[id] || []);
-        setAlbum(albumsMock[id] || null);
+    const getAlbumAndStickers = async () => {
+      if (!albumId) return;
+
+      try {
         setLoading(false);
-      }, 500);
-    }
+
+        const album = await fetchAlbumById(albumId);
+        setAlbum(album);
+
+        const allStickers: Sticker[] = [];
+
+        album.commonStickers.forEach((item: StickerItem) => {
+          allStickers.push({
+            id: `common-${item.number}`,
+            albumId: album.id,
+            number: item.number,
+            name: item.name,
+            type: 'common',
+            price: stickerPrices.common
+          });
+        });
+
+        album.frameStickers.forEach((item: StickerItem) => {
+          allStickers.push({
+            id: `frame-${item.number}`,
+            albumId: album.id,
+            number: item.number,
+            name: item.name,
+            type: 'frame',
+            price: stickerPrices.frame
+          });
+        });
+
+        album.legendStickers.forEach((item: StickerItem) => {
+          allStickers.push({
+            id: `legend-${item.number}`,
+            albumId: album.id,
+            number: item.number,
+            name: item.name,
+            type: 'legend',
+            price: stickerPrices.legend
+          });
+        });
+
+        album.a4Stickers.forEach((item: StickerItem) => {
+          allStickers.push({
+            id: `a4-${item.number}`,
+            albumId: album.id,
+            number: item.number,
+            name: item.name,
+            type: 'a4',
+            price: stickerPrices.a4
+          });
+        });
+
+        setStickers(allStickers);
+        setLoading(false);
+      } catch (err) {
+        console.error('Erro ao buscar álbum ou figurinhas:', err);
+        setError('Falha ao carregar as figurinhas. Por favor, tente novamente mais tarde.');
+        setLoading(false);
+      }
+    };
+
+    getAlbumAndStickers();
   }, [albumId]);
 
   const toggleSticker = (sticker: Sticker) => {
@@ -111,6 +145,13 @@ const StickersPage = () => {
         <div className="flex justify-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
         </div>
+      ) : error ? (
+        <div className="text-center py-10">
+          <p className="text-red-500">{error}</p>
+          <Link to="/schools" className="mt-4 inline-block text-primary-600 hover:underline">
+            Voltar para lista de escolas
+          </Link>
+        </div>
       ) : (
         <>
           {/* Feedback de sucesso */}
@@ -135,9 +176,9 @@ const StickersPage = () => {
               <button
                 key={type}
                 className={`px-4 py-2 rounded-full whitespace-nowrap ${filter === type ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700'}`}
-                onClick={() => setFilter(type as 'common' | 'legend' | 'quadro' | 'a4')}
+                onClick={() => setFilter(type as "" | "common" | "legend" | "quadro" | "a4")}
               >
-                {stickerTypeInfo[type].name}
+                {stickerTypeInfo[type]?.name || type}
               </button>
             ))}
           </div>
@@ -154,6 +195,17 @@ const StickersPage = () => {
               {filteredStickers.map((sticker) => {
                 const isSelected = selectedStickers.some(s => s.id === sticker.id);
                 const typeInfo = stickerTypeInfo[sticker.type];
+                const bgColorClass =
+                  sticker.type === 'a4' ? 'bg-blue-50' :
+                    sticker.type === 'frame' ? 'bg-amber-50' :
+                      sticker.type === 'legend' ? 'bg-purple-50' :
+                        'bg-gray-100';
+
+                const stickerStyle =
+                  sticker.type === 'a4' ? 'w-14 h-18' :
+                    sticker.type === 'frame' ? 'w-16 h-16 border-2 border-amber-200' :
+                      sticker.type === 'legend' ? 'w-14 h-18 bg-gradient-to-r from-purple-100 to-pink-100' :
+                        'w-14 h-18';
 
                 return (
                   <div
@@ -166,14 +218,15 @@ const StickersPage = () => {
                         <Check className="h-3 w-3 text-white" />
                       </div>
                     )}
-                    <div className={`h-20 bg-gray-200 flex items-center justify-center ${sticker.type === 'a4' ? 'bg-blue-50' : sticker.type === 'quadro' ? 'bg-amber-50' : sticker.type === 'legend' ? 'bg-purple-50' : 'bg-gray-100'}`}>
-                      <div className={`${sticker.type === 'a4' ? 'w-14 h-18' : sticker.type === 'quadro' ? 'w-16 h-16 border-2 border-amber-200' : sticker.type === 'legend' ? 'w-14 h-18 bg-gradient-to-r from-purple-100 to-pink-100' : 'w-14 h-18'} bg-white border border-gray-300 flex items-center justify-center rounded`}>
-                        <p className="text-sm font-medium text-gray-700">{sticker.id}</p>
+                    <div className={`h-20 ${bgColorClass} flex items-center justify-center`}>
+                      <div className={`${stickerStyle} bg-white border border-gray-300 flex items-center justify-center rounded`}>
+                        <p className="text-sm font-medium text-gray-700">{sticker.number}</p>
                       </div>
                     </div>
                     <div className="p-2">
-                      <div className="flex justify-between items-center">
-                        <p className="text-xs font-medium">{typeInfo.name}</p>
+                      <p className="text-xs text-gray-700 truncate" title={sticker.name}>{sticker.name}</p>
+                      <div className="flex justify-between items-center mt-1">
+                        <p className="text-xs font-medium">{typeInfo?.name || sticker.type}</p>
                         <p className="font-semibold text-xs">R${sticker.price.toFixed(2)}</p>
                       </div>
                     </div>

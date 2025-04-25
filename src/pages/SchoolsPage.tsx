@@ -1,87 +1,86 @@
 // src/pages/SchoolsPage.tsx
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { School, Search } from 'lucide-react'
-
-// Tipo para a school
-interface School {
-  id: number;
-  nome: string;
-  cidade: string;
-  estado: string;
-  imagem: string;
-}
-
-// Dados mockados para schools
-const schoolsMock: School[] = [
-  { id: 1, nome: 'Colégio Santa Maria', cidade: 'São Paulo', estado: 'SP', imagem: '/school1.jpg' },
-  { id: 2, nome: 'School Municipal João Paulo', cidade: 'Rio de Janeiro', estado: 'RJ', imagem: '/school2.jpg' },
-  { id: 3, nome: 'Instituto Educacional Palmeiras', cidade: 'Belo Horizonte', estado: 'MG', imagem: '/school3.jpg' },
-  { id: 4, nome: 'Colégio Santo Agostinho', cidade: 'Salvador', estado: 'BA', imagem: '/school4.jpg' },
-  { id: 5, nome: 'School Estadual Prof. Carlos Silva', cidade: 'Porto Alegre', estado: 'RS', imagem: '/school5.jpg' },
-  { id: 6, nome: 'Centro Educacional Mundo Novo', cidade: 'Brasília', estado: 'DF', imagem: '/school6.jpg' },
-]
+import { School as SchoolIcon, Search } from 'lucide-react'
+import { School } from '../types';
+import { fetchSchools } from '../clients/school';
 
 const SchoolsPage = () => {
   const [schools, setSchools] = useState<School[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulando uma chamada API
-    setTimeout(() => {
-      setSchools(schoolsMock);
-      setLoading(false);
-    }, 500);
+    const loadSchools = async () => {
+      try {
+        const data = await fetchSchools();
+        setSchools(data);
+        setLoading(false);
+      } catch (err) {
+        console.error('Erro ao carregar escolas:', err);
+        setError('Não foi possível carregar a lista de escolas. Tente novamente mais tarde.');
+        setLoading(false);
+      }
+    };
+
+    loadSchools();
   }, []);
 
-  const schoolsFiltradas = schools.filter(school =>
-    school.nome.toLowerCase().includes(search.toLowerCase()) ||
-    school.cidade.toLowerCase().includes(search.toLowerCase()) ||
-    school.estado.toLowerCase().includes(search.toLowerCase())
+  const filteredSchools = schools.filter(school =>
+    school.name.toLowerCase().includes(search.toLowerCase()) ||
+    school.city.toLowerCase().includes(search.toLowerCase()) ||
+    school.state.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Selecione a School</h1>
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Selecione a Escola</h1>
+      </div>
 
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-          <Search className="h-5 w-5 text-gray-400" />
+      <div className="mb-6 relative">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+          <input
+            type="text"
+            placeholder="Buscar por nome, cidade ou estado..."
+            className="w-full pl-10 pr-4 py-2 border rounded-lg"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
-        <input
-          type="text"
-          className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-hidden focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
-          placeholder="Buscar por nome ou localização..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
       </div>
 
       {loading ? (
-        <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      ) : error ? (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+          {error}
         </div>
       ) : (
         <>
-          {schoolsFiltradas.length === 0 ? (
-            <div className="text-center py-10">
-              <p className="text-gray-500">Nenhuma escola encontrada com os critérios de busca.</p>
+          {filteredSchools.length === 0 ? (
+            <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+              Nenhuma escola encontrada com os critérios de busca.
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              {schoolsFiltradas.map((school) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredSchools.map((school) => (
                 <Link
+                  to={`/schools/${school.id}/albums`}
                   key={school.id}
-                  to={`/schools/${school.id}/albuns`}
-                  className="block bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                  className="block bg-white shadow-md hover:shadow-lg rounded-lg overflow-hidden transition-shadow duration-300"
                 >
-                  <div className="h-40 bg-gray-200 rounded-t-lg flex items-center justify-center">
-                    <School color='gray' className="h-10 w-10" />
+                  <div className="h-40 bg-gray-200 flex items-center justify-center">
+                    <SchoolIcon size={64} className="text-gray-400" />
                   </div>
                   <div className="p-4">
-                    <h3 className="font-semibold">{school.nome}</h3>
-                    <p className="text-gray-600 text-sm">{school.cidade}, {school.estado}</p>
+                    <h3 className="font-bold text-lg mb-1">{school.name}</h3>
+                    <p className="text-gray-600">{school.city}, {school.state}</p>
+                    <p className="text-gray-500 text-sm mt-2">{school.phone}</p>
                   </div>
                 </Link>
               ))}
