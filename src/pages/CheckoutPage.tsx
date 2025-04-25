@@ -447,7 +447,7 @@ const CheckoutPage = () => {
                     Selecione a forma de pagamento
                   </p>
                   <div className="space-y-2">
-                    <label className="flex items-center space-x-2 cursor-pointer">
+                    {/* <label className="flex items-center space-x-2 cursor-pointer">
                       <input
                         type="radio"
                         name="paymentMethod"
@@ -457,7 +457,7 @@ const CheckoutPage = () => {
                         className="text-primary-600"
                       />
                       <span>Cartão de Crédito</span>
-                    </label>
+                    </label> */}
                     <label className="flex items-center space-x-2 cursor-pointer">
                       <input
                         type="radio"

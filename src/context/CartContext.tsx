@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Album, Sticker } from '../types';
+import { Album, Sticker } from '../types/album';
 
 // Update CartSticker to store stickers with quantities
 export interface CartSticker extends Sticker {

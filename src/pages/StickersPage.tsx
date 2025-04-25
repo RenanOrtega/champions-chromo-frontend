@@ -1,10 +1,9 @@
-// src/pages/StickersPage.tsx
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, ShoppingCart, Check } from 'lucide-react';
 import { useCart } from '../context/CartContext';
-import { Album, Sticker, StickerItem } from '../types';
 import { fetchAlbumById } from '../clients/album';
+import { Album, Sticker, StickerItem } from '../types/album';
 
 const stickerTypeInfo = {
   'common': { name: 'Comum', description: 'Figurinha padrão 7x5cm' },

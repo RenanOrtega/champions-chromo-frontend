@@ -2,8 +2,8 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Album as AlbumIcon, ArrowLeft } from 'lucide-react';
-import { Album } from '../types';
 import { fetchAlbumsBySchoolId } from '../clients/album';
+import { Album } from '../types/album';
 
 const AlbumPage = () => {
   const { schoolId } = useParams<{ schoolId: string }>();
