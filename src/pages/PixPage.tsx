@@ -4,6 +4,8 @@ import { FormData } from "./CheckoutPage";
 import PixQrCode from "../components/PixQrCode";
 import { simulatePayment, checkStatus, createPixOrder } from "../clients/pix";
 import { CreateOrder, PixQrCodeResponseData, PixStatus } from "../types/pix";
+import { useCart } from "../context/CartContext";
+import ThankYouScreen from "../components/ThankYouScreen";
 
 interface LocationState {
   formData: FormData;
@@ -71,16 +73,18 @@ const StatusBadge = ({ status }: { status: PixStatus | null }) => {
 };
 
 const PixPage = () => {
+  const { cleanCart } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
   const { formData, totalAmount } = location.state as LocationState || {};
 
   const [isGeneratingPix, setIsGeneratingPix] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<PixStatus | null>("PENDING");
+  const [showThankYouScreen, setShowThankYouScreen] = useState(false);
   const [statusPolling, setStatusPolling] = useState<NodeJS.Timeout | null>(null);
   const [pixData, setPixData] = useState<PixQrCodeResponseData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false); // Add this state to track if we've tried to load
+  const [hasAttemptedLoad, setHasAttemptedLoad] = useState(false);
 
   useEffect(() => {
     if (!formData) {
@@ -160,15 +164,13 @@ const PixPage = () => {
           }
         }
       } catch (err) {
-        console.error('Error generating PIX:', err);
         setError('Failed to generate PIX code');
       } finally {
         setIsGeneratingPix(false);
-        setHasAttemptedLoad(true); // Mark that we've attempted to load
+        setHasAttemptedLoad(true);
       }
     };
 
-    // Only attempt to load if we haven't tried yet or if we haven't had an error
     if (formData && !isGeneratingPix && !pixData && !hasAttemptedLoad) {
       loadOrGeneratePixPayment();
     }
@@ -188,6 +190,13 @@ const PixPage = () => {
             setStatusPolling(null);
           }
 
+          if (response.status === "PAID") {
+            cleanCart();
+            setTimeout(() => {
+              setShowThankYouScreen(true);
+            }, 1000);
+          }
+
           localStorage.removeItem('pixQrCodeCache');
         }
       } catch (err) {
@@ -203,7 +212,7 @@ const PixPage = () => {
     return () => {
       clearInterval(interval);
     };
-  }, [pixData]);
+  }, [pixData, cleanCart]);
 
   useEffect(() => {
     return () => {
@@ -224,11 +233,25 @@ const PixPage = () => {
     setPixData(null);
     setPaymentStatus("PENDING");
     setError(null);
-    setHasAttemptedLoad(false); // Reset this so we can try again
+    setHasAttemptedLoad(false);
+  };
+
+  const handleBackToSchools = () => {
+    navigate('/schools');
   };
 
   if (!formData) {
     return null;
+  }
+
+  if (showThankYouScreen) {
+    return (
+      <div className="container mx-auto px-4 py-8 mt-10 max-w-2xl">
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <ThankYouScreen onBackToSchools={handleBackToSchools} />
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -254,29 +277,21 @@ const PixPage = () => {
           <p className="mt-2">O código PIX expira em 1 hora.</p>
         </div>
 
-        {paymentStatus !== "PAID" && (
-          <div className="flex flex-col gap-2">
-            <button
-              onClick={handleSimulatePayment}
-              className="mt-4 w-full cursor-pointer bg-green-400 hover:bg-green-500 p-3 rounded text-white font-medium transition-colors"
-            >
-              Simular pagamento
-            </button>
+        <div className="flex flex-col gap-2">
+          <button
+            onClick={handleSimulatePayment}
+            className="mt-4 w-full cursor-pointer bg-green-400 hover:bg-green-500 p-3 rounded text-white font-medium transition-colors"
+          >
+            Simular pagamento
+          </button>
 
-            <button
-              onClick={handleClearCache}
-              className="w-full cursor-pointer bg-gray-200 hover:bg-gray-300 p-2 rounded text-gray-700 text-sm transition-colors"
-            >
-              Gerar novo código PIX
-            </button>
-          </div>
-        )}
-
-        {paymentStatus === "PAID" && (
-          <div className="mt-4 text-center text-green-600 animate-pulse">
-            <p className="font-medium">Pagamento confirmado!</p>
-          </div>
-        )}
+          <button
+            onClick={handleClearCache}
+            className="w-full cursor-pointer bg-gray-200 hover:bg-gray-300 p-2 rounded text-gray-700 text-sm transition-colors"
+          >
+            Gerar novo código PIX
+          </button>
+        </div>
       </div>
     </div>
   );

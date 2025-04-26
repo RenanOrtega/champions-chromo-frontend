@@ -109,6 +109,7 @@ const StickersPage = () => {
   };
 
   const handleAddToCart = () => {
+    console.log('Adding to cart:', selectedStickers.map(s => s.id));
     if (album && selectedStickers.length > 0) {
       addToCart(album, selectedStickers);
       setShowSuccess(true);
