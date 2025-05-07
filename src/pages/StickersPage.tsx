@@ -6,10 +6,10 @@ import { fetchAlbumById } from '../clients/album';
 import { Album, Sticker, StickerItem } from '../types/album';
 
 const stickerTypeInfo = {
-  'common': { name: 'Comum', description: 'Figurinha padrão 7x5cm' },
-  'frame': { name: 'Quadro', description: 'Quadro emoldurado 15x20cm' },
-  'legend': { name: 'Lenda', description: 'Figurinha especial metalizada' },
-  'a4': { name: 'Folha A4', description: 'Impressão em folha A4' }
+  'common': { name: 'Comum'},
+  'frame': { name: 'Frame'},
+  'legend': { name: 'Legend'},
+  'a4': { name: 'A4'}
 };
 
 const stickerPrices = {
@@ -128,13 +128,13 @@ const StickersPage = () => {
   const availableTypes = [...new Set(stickers.map(sticker => sticker.type))];
 
   return (
-    <div className="space-y-6 pb-24 mt-14">
+    <div className="space-y-6 pb-24">
       <div className="flex items-center space-x-2">
         <button
           onClick={() => navigate(-1)}
           className="p-2 rounded-full hover:bg-gray-100"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5 cursor-pointer" />
         </button>
         <h1 className="md:text-2xl font-bold">
           {album ? `Figurinhas para ${album.name}` : 'Carregando...'}

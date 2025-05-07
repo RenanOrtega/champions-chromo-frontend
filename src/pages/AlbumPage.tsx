@@ -39,13 +39,13 @@ const AlbumPage = () => {
   }, [schoolId]);
 
   return (
-    <div className="space-y-6 mt-14">
+    <div className="space-y-6">
       <div className="flex items-center space-x-2">
         <button
           onClick={() => navigate(-1)}
           className="p-2 rounded-full hover:bg-gray-100"
         >
-          <ArrowLeft className="h-5 w-5" />
+          <ArrowLeft className="h-5 w-5 cursor-pointer" />
         </button>
         <h1 className="md:text-2xl font-bold">Álbuns disponíveis para {schoolName}</h1>
       </div>
@@ -90,9 +90,9 @@ const AlbumPage = () => {
                         Total de figurinhas: {album.totalStickers}
                       </p>
                       <p className="text-sm text-gray-500">Ano: {releaseYear}</p>
-                      <p className="text-primary-600 font-semibold mt-2">
+                      {/* <p className="text-primary-600 font-semibold mt-2">
                         R$ {album.price.toFixed(2)}
-                      </p>
+                      </p> */}
                       <Link
                         to={`/albums/${album.id}/figurinhas`}
                         className="mt-4 block w-full py-2 px-4 bg-primary-600 text-white text-center rounded-md hover:bg-primary-700 transition-colors"

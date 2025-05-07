@@ -8,6 +8,7 @@ import { CartProvider } from "./context/CartContext";
 import CartPage from "./pages/CartPage";
 import CheckoutPage from "./pages/CheckoutPage";
 import PixPage from "./pages/PixPage";
+import SuccessPage from "./pages/SuccessPage";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
           <Route path="cart" element={<CartPage />} />
           <Route path="checkout" element={<CheckoutPage />} />
           <Route path="checkout/pix" element={<PixPage />} />
+          <Route path="success" element={<SuccessPage />} />
         </Route>
       </Routes>
     </CartProvider>

@@ -2,6 +2,13 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { ArrowLeft, ShoppingBag, X, Minus, Plus } from 'lucide-react';
 
+const stickerTypeInfo = {
+  'common': { name: 'Comum'},
+  'frame': { name: 'Frame'},
+  'legend': { name: 'Legend'},
+  'a4': { name: 'A4'}
+};
+
 const CartPage = () => {
   const navigate = useNavigate();
   const {
@@ -67,9 +74,9 @@ const CartPage = () => {
                       <div key={sticker.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
                         <div className="flex items-center">
                           <div className="w-8 h-8 bg-white border border-gray-200 rounded flex items-center justify-center mr-2">
-                            <span className="text-xs font-medium text-gray-700">{sticker.id}</span>
+                            <span className="text-xs font-medium text-gray-700">{sticker.number}</span>
                           </div>
-                          <span className="text-sm">{sticker.type.charAt(0).toUpperCase() + sticker.type.slice(1)}</span>
+                          <span className="text-sm">{stickerTypeInfo[sticker.type].name}</span>
                         </div>
                         <div className="flex items-center">
                           <div className="flex items-center mr-4">
@@ -124,7 +131,7 @@ const CartPage = () => {
                 <p className="font-medium text-sm">{item.album.name}</p>
                 {item.stickers.map(sticker => (
                   <div key={sticker.id} className="flex justify-between text-xs text-gray-600 mt-1">
-                    <p>{sticker.id} ({sticker.type}) x{sticker.quantity}</p>
+                    <p>{sticker.number} ({stickerTypeInfo[sticker.type].name} ) x{sticker.quantity}</p>
                     <p>R$ {(sticker.price * sticker.quantity).toFixed(2)}</p>
                   </div>
                 ))}

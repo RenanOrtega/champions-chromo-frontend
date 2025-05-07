@@ -34,7 +34,7 @@ const SchoolsPage = () => {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8 mt-10">
+    <div className="container mx-auto px-4 py-8">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Selecione a Escola</h1>
       </div>
@@ -72,7 +72,7 @@ const SchoolsPage = () => {
                 <Link
                   to={`/schools/${school.id}/albums`}
                   key={school.id}
-                  className="block bg-white shadow-md hover:shadow-lg rounded-lg overflow-hidden transition-shadow duration-300"
+                  className="block bg-white shadow-md hover:shadow-lg rounded-lg overflow-hidden transition-shadow duration-300 hover:border-primary-200 border-2"
                 >
                   <div className="h-40 bg-gray-200 flex items-center justify-center">
                     <SchoolIcon size={64} className="text-gray-400" />

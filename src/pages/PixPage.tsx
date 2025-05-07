@@ -5,7 +5,6 @@ import PixQrCode from "../components/PixQrCode";
 import { simulatePayment, checkStatus, createPixOrder } from "../clients/pix";
 import { CreateOrder, PixQrCodeResponseData, PixStatus } from "../types/pix";
 import { useCart } from "../context/CartContext";
-import ThankYouScreen from "../components/ThankYouScreen";
 
 interface LocationState {
   formData: FormData;
@@ -80,7 +79,6 @@ const PixPage = () => {
 
   const [isGeneratingPix, setIsGeneratingPix] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<PixStatus | null>("PENDING");
-  const [showThankYouScreen, setShowThankYouScreen] = useState(false);
   const [statusPolling, setStatusPolling] = useState<NodeJS.Timeout | null>(null);
   const [pixData, setPixData] = useState<PixQrCodeResponseData | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -193,7 +191,7 @@ const PixPage = () => {
           if (response.status === "PAID") {
             cleanCart();
             setTimeout(() => {
-              setShowThankYouScreen(true);
+              navigate('/success')
             }, 1000);
           }
 
@@ -236,22 +234,12 @@ const PixPage = () => {
     setHasAttemptedLoad(false);
   };
 
-  const handleBackToSchools = () => {
-    navigate('/schools');
-  };
+  const handleSuccess = () => {
+    navigate('/success');
+  }
 
   if (!formData) {
     return null;
-  }
-
-  if (showThankYouScreen) {
-    return (
-      <div className="container mx-auto px-4 py-8 mt-10 max-w-2xl">
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <ThankYouScreen onBackToSchools={handleBackToSchools} />
-        </div>
-      </div>
-    );
   }
 
   return (
