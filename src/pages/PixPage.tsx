@@ -234,10 +234,6 @@ const PixPage = () => {
     setHasAttemptedLoad(false);
   };
 
-  const handleSuccess = () => {
-    navigate('/success');
-  }
-
   if (!formData) {
     return null;
   }
