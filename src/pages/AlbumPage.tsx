@@ -1,4 +1,3 @@
-// src/pages/AlbumPage.tsx
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Album as AlbumIcon, ArrowLeft } from 'lucide-react';
@@ -15,7 +14,6 @@ const AlbumPage = () => {
   const { schoolId } = useParams<{ schoolId: string }>();
   const [albums, setAlbums] = useState<Album[]>([]);
   const [loading, setLoading] = useState(true);
-  const [schoolName, setSchoolName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
@@ -30,7 +28,6 @@ const AlbumPage = () => {
 
         const albums = await fetchAlbumsBySchoolId(schoolId);
         setAlbums(albums);
-        setSchoolName('COLOCAR NOME DA ESCOLA');
         setLoading(false);
       } catch (err) {
         console.error('Erro ao buscar álbuns:', err);
