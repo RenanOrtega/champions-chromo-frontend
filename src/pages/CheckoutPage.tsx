@@ -47,6 +47,7 @@ interface ViaCepResponse {
 const CheckoutPage = () => {
   const navigate = useNavigate();
   const { itens, calcTotal } = useCart();
+
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isLoadingCep, setIsLoadingCep] = useState<boolean>(false);
   const [cepError, setCepError] = useState<string>('');
@@ -458,6 +459,7 @@ const CheckoutPage = () => {
                       />
                       <span>Cartão de Crédito</span>
                     </label> */}
+                    <div></div>
                     <label className="flex items-center space-x-2 cursor-pointer">
                       <input
                         type="radio"
@@ -468,6 +470,17 @@ const CheckoutPage = () => {
                         className="text-primary-600"
                       />
                       <span>PIX</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="paymentMethod"
+                        value="cc"
+                        checked={formData.paymentInfo.method === 'cc'}
+                        onChange={() => handleInputChange('paymentInfo', 'method', 'cc')}
+                        className="text-primary-600"
+                      />
+                      <span>Cartão de Crédito</span>
                     </label>
                   </div>
                 </div>
@@ -597,7 +610,7 @@ const CheckoutPage = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8 mt-10">
+    <div className="container mx-auto px-4 py-8">
       <div className="flex items-center space-x-2 mb-6">
         <button
           onClick={goBack}

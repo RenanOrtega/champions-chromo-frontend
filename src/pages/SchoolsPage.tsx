@@ -5,6 +5,11 @@ import { School as SchoolIcon, Search } from 'lucide-react'
 import { fetchSchools } from '../clients/school';
 import { School } from '../types/school';
 
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
 const SchoolsPage = () => {
   const [schools, setSchools] = useState<School[]>([]);
   const [search, setSearch] = useState('');
@@ -41,11 +46,11 @@ const SchoolsPage = () => {
 
       <div className="mb-6 relative">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-          <input
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
+          <Input
             type="text"
             placeholder="Buscar por nome, cidade ou estado..."
-            className="w-full pl-10 pr-4 py-2 border rounded-lg"
+            className="w-full pl-10"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -53,35 +58,50 @@ const SchoolsPage = () => {
       </div>
 
       {loading ? (
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Card key={i}>
+              <div className="h-40 flex items-center justify-center">
+                <Skeleton className="h-32 w-32 rounded-all" />
+              </div>
+              <CardContent className="pt-4">
+                <Skeleton className="h-4 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-3/4 mb-2" />
+                <Skeleton className="h-4 w-3/4" />
+              </CardContent>
+            </Card>
+          ))}
         </div>
       ) : error ? (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          {error}
-        </div>
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : (
         <>
           {filteredSchools.length === 0 ? (
-            <div className="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
-              Nenhuma escola encontrada com os critérios de busca.
-            </div>
+            <Alert>
+              <AlertDescription>
+                Nenhuma escola encontrada com os critérios de busca.
+              </AlertDescription>
+            </Alert>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredSchools.map((school) => (
                 <Link
                   to={`/schools/${school.id}/albums`}
                   key={school.id}
-                  className="block bg-white shadow-md hover:shadow-lg rounded-lg overflow-hidden transition-shadow duration-300 hover:border-primary-200 border-2"
+                  className="block transition-shadow duration-300 hover:opacity-90"
                 >
-                  <div className="h-40 bg-gray-200 flex items-center justify-center">
-                    <SchoolIcon size={64} className="text-gray-400" />
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg mb-1">{school.name}</h3>
-                    <p className="text-gray-600">{school.city}, {school.state}</p>
-                    <p className="text-gray-500 text-sm mt-2">{school.phone}</p>
-                  </div>
+                  <Card className="hover:shadow-md border-2 hover:border-primary-200">
+                    <CardHeader className="h-40 flex items-center justify-center bg-muted">
+                      <SchoolIcon size={64} className="text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent className=" bg-white">
+                      <h3 className="font-bold text-lg mb-1">{school.name}</h3>
+                      <p className="text-muted-foreground">{school.city}, {school.state}</p>
+                      <p className="text-muted-foreground text-sm mt-2">{school.phone}</p>
+                    </CardContent>
+                  </Card>
                 </Link>
               ))}
             </div>

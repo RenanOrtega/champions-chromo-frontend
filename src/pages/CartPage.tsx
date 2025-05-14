@@ -162,7 +162,7 @@ const CartPage = () => {
           </div>
           <button
             onClick={() => navigate("/checkout")}
-            className="flex items-center space-x-2 bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700"
+            className="flex items-center space-x-2 cursor-pointer bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700"
           >
             <ShoppingBag className="h-5 w-5" />
             <span>Finalizar compra</span>

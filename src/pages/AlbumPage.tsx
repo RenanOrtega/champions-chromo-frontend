@@ -5,6 +5,12 @@ import { Album as AlbumIcon, ArrowLeft } from 'lucide-react';
 import { fetchAlbumsBySchoolId } from '../clients/album';
 import { Album } from '../types/album';
 
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+
 const AlbumPage = () => {
   const { schoolId } = useParams<{ schoolId: string }>();
   const [albums, setAlbums] = useState<Album[]>([]);
@@ -39,68 +45,88 @@ const AlbumPage = () => {
   }, [schoolId]);
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center space-x-2">
-        <button
+    <div className="container mx-auto px-4 py-8">
+      <div className="flex items-center mb-6">
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => navigate(-1)}
-          className="p-2 rounded-full hover:bg-gray-100"
+          className="rounded-full cursor-pointer"
         >
-          <ArrowLeft className="h-5 w-5 cursor-pointer" />
-        </button>
-        <h1 className="md:text-2xl font-bold">Álbuns disponíveis para {schoolName}</h1>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <h1 className="text-2xl font-bold">Álbuns disponíveis</h1>
       </div>
 
       {loading ? (
-        <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Card key={i} className="overflow-hidden">
+              <div className="h-48 bg-muted flex items-center justify-center">
+                <Skeleton className="h-24 w-24" />
+              </div>
+              <CardContent className="p-4 pt-6">
+                <Skeleton className="h-6 w-3/4 mb-4" />
+                <Skeleton className="h-4 w-1/2 mb-2" />
+                <Skeleton className="h-4 w-1/3 mb-4" />
+                <Skeleton className="h-10 w-full mt-4" />
+              </CardContent>
+            </Card>
+          ))}
         </div>
       ) : error ? (
-        <div className="text-center py-10">
-          <p className="text-red-500">{error}</p>
-          <Link to="/schools" className="mt-4 inline-block text-primary-600 hover:underline">
-            Voltar para lista de escolas
-          </Link>
-        </div>
+        <Alert variant="destructive" className="mb-4">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
       ) : (
         <>
           {albums.length === 0 ? (
             <div className="text-center py-10">
-              <p className="text-gray-500">Nenhum álbum disponível para esta escola.</p>
-              <Link to="/schools" className="mt-4 inline-block text-primary-600 hover:underline">
-                Voltar para lista de escolas
-              </Link>
+              <Alert>
+                <AlertDescription>Nenhum álbum disponível para esta escola.</AlertDescription>
+              </Alert>
+              <Button
+                variant="link"
+                asChild
+                className="mt-4"
+              >
+                <Link to="/schools">Voltar para lista de escolas</Link>
+              </Button>
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {albums.map((album) => {
-                // Calcular o ano do álbum a partir da data de lançamento
                 const releaseYear = new Date(album.releaseDate).getFullYear();
 
                 return (
-                  <div
+                  <Card
                     key={album.id}
-                    className="bg-white rounded-lg shadow-sm overflow-hidden"
+                    className="overflow-hidden"
                   >
-                    <div className="h-48 bg-gray-200 flex items-center justify-center">                      
-                      <AlbumIcon color='gray' className="h-10 w-10" />
-                    </div>
-                    <div className="p-4">
+                    <CardHeader className="h-48 bg-muted flex items-center justify-center">
+                      <AlbumIcon className="h-16 w-16 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent className="p-4">
                       <h3 className="font-semibold text-lg">{album.name}</h3>
-                      <p className="text-gray-600 mt-1">
-                        Total de figurinhas: {album.totalStickers}
-                      </p>
-                      <p className="text-sm text-gray-500">Ano: {releaseYear}</p>
-                      {/* <p className="text-primary-600 font-semibold mt-2">
-                        R$ {album.price.toFixed(2)}
-                      </p> */}
-                      <Link
-                        to={`/albums/${album.id}/figurinhas`}
-                        className="mt-4 block w-full py-2 px-4 bg-primary-600 text-white text-center rounded-md hover:bg-primary-700 transition-colors"
-                      >
-                        Selecionar
-                      </Link>
-                    </div>
-                  </div>
+                      <div className='flex items-center gap-2 mt-2'>
+                        <Badge variant="outline">
+                          {album.totalStickers} figurinhas
+                        </Badge>
+                        <Badge variant="secondary" className="bg-secondary-300">
+                          Ano: {releaseYear}
+                        </Badge>
+                      </div>
+                    </CardContent>
+                    <CardFooter className="p-4 pt-0">
+                      <Button className="w-full bg-primary-400 hover:bg-primary-500" asChild>
+                        <Link
+                          to={`/albums/${album.id}/figurinhas`}
+                        >
+                          Selecionar
+                        </Link>
+                      </Button>
+                    </CardFooter>
+                  </Card>
                 );
               })}
             </div>
