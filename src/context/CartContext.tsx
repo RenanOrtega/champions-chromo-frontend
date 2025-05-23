@@ -63,6 +63,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [itens]);
 
+  // Helper function to create a unique key for grouping stickers
+  const getStickerGroupKey = (sticker: Sticker) => {
+    return `${sticker.number}-${sticker.type}`;
+  };
+
   const addToCart = (album: Album, stickers: Sticker[]) => {
     console.log('Adding stickers to cart:', stickers.map(s => s.id));
 
@@ -77,26 +82,38 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         // Album exists, get the existing item
         const existingItem = updatedItens[existingItemIndex];
 
-        // Create a new array for the updated stickers to avoid direct mutation
-        const updatedStickers = [...existingItem.stickers];
+        // Create a map to group stickers by number and type
+        const stickerMap = new Map<string, CartSticker>();
 
-        // Process each sticker to add
+        // First, add existing stickers to the map
+        existingItem.stickers.forEach(sticker => {
+          const key = getStickerGroupKey(sticker);
+          stickerMap.set(key, { ...sticker });
+        });
+
+        // Then, add or update with new stickers
         stickers.forEach(sticker => {
-          // Check if sticker already exists by ID
-          const existingStickerIndex = updatedStickers.findIndex(s => s.id === sticker.id);
-          console.log('Sticker exists?', existingStickerIndex >= 0, sticker.id);
-
-          if (existingStickerIndex >= 0) {
-            // Sticker exists, increase quantity
-            updatedStickers[existingStickerIndex] = {
-              ...updatedStickers[existingStickerIndex],
-              quantity: updatedStickers[existingStickerIndex].quantity + 1
-            };
+          const key = getStickerGroupKey(sticker);
+          if (stickerMap.has(key)) {
+            // Sticker group exists, increase quantity
+            const existingSticker = stickerMap.get(key)!;
+            stickerMap.set(key, {
+              ...existingSticker,
+              quantity: existingSticker.quantity + 1
+            });
           } else {
-            // Sticker doesn't exist, add it with quantity 1
-            updatedStickers.push({ ...sticker, quantity: 1 });
+            // New sticker group, add with quantity 1
+            stickerMap.set(key, { 
+              ...sticker, 
+              quantity: 1,
+              // Create a unique ID based on number and type for grouping
+              id: `${sticker.albumId}-${sticker.number}-${sticker.type}`
+            });
           }
         });
+
+        // Convert map back to array
+        const updatedStickers = Array.from(stickerMap.values());
 
         // Update the item with the new stickers array
         updatedItens[existingItemIndex] = {
@@ -106,12 +123,36 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
         return updatedItens;
       } else {
-        // Album doesn't exist, add new item with all stickers
+        // Album doesn't exist, create new item and group stickers
+        const stickerMap = new Map<string, CartSticker>();
+
+        stickers.forEach(sticker => {
+          const key = getStickerGroupKey(sticker);
+          if (stickerMap.has(key)) {
+            // Increase quantity for existing group
+            const existingSticker = stickerMap.get(key)!;
+            stickerMap.set(key, {
+              ...existingSticker,
+              quantity: existingSticker.quantity + 1
+            });
+          } else {
+            // Create new group
+            stickerMap.set(key, { 
+              ...sticker, 
+              quantity: 1,
+              // Create a unique ID based on number and type for grouping
+              id: `${sticker.albumId}-${sticker.number}-${sticker.type}`
+            });
+          }
+        });
+
+        const groupedStickers = Array.from(stickerMap.values());
+
         return [
           ...updatedItens,
           {
             album,
-            stickers: stickers.map(sticker => ({ ...sticker, quantity: 1 }))
+            stickers: groupedStickers
           }
         ];
       }

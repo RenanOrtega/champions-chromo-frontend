@@ -3,10 +3,9 @@ import { useCart } from '../context/CartContext';
 import { ArrowLeft, ShoppingBag, X, Minus, Plus } from 'lucide-react';
 
 const stickerTypeInfo = {
-  'common': { name: 'Comum'},
-  'frame': { name: 'Frame'},
-  'legend': { name: 'Legend'},
-  'a4': { name: 'A4'}
+  'common': { name: 'Comum', price: 1 },
+  'legend': { name: 'Legend', price: 5 },
+  'a4': { name: 'A4', price: 15 }
 };
 
 const CartPage = () => {
@@ -71,36 +70,51 @@ const CartPage = () => {
                   </h4>
                   <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                     {item.stickers.map((sticker) => (
-                      <div key={sticker.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                        <div className="flex items-center">
-                          <div className="w-8 h-8 bg-white border border-gray-200 rounded flex items-center justify-center mr-2">
-                            <span className="text-xs font-medium text-gray-700">{sticker.number}</span>
+                      <div key={sticker.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center flex-1">
+                          <div className="w-10 h-10 bg-white border border-gray-200 rounded flex items-center justify-center mr-3">
+                            <span className="text-sm font-medium text-gray-700">#{sticker.number}</span>
                           </div>
-                          <span className="text-sm">{stickerTypeInfo[sticker.type].name}</span>
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium">{sticker.name || `Figurinha ${sticker.number}`}</span>
+                            <span className={`text-xs px-2 py-1 rounded text-white w-fit mt-1 ${
+                              sticker.type === 'common' ? 'bg-gray-500' :
+                              sticker.type === 'legend' ? 'bg-purple-500' : 'bg-blue-500'
+                            }`}>
+                              {stickerTypeInfo[sticker.type].name}
+                            </span>
+                          </div>
                         </div>
                         <div className="flex items-center">
-                          <div className="flex items-center mr-4">
+                          <div className="flex items-center mr-4 bg-white rounded-lg border border-gray-200">
                             <button
                               onClick={() => decreaseQuantity(item.album.id, sticker.id)}
-                              className="p-1 rounded-full hover:bg-gray-200 cursor-pointer"
+                              className="p-2 rounded-l-lg hover:bg-gray-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                               disabled={sticker.quantity <= 1}
                             >
                               <Minus className="h-4 w-4" />
                             </button>
-                            <span className="mx-2 text-sm font-medium">{sticker.quantity}</span>
+                            <span className="px-3 py-2 text-sm font-medium border-x border-gray-200 min-w-[40px] text-center">
+                              {sticker.quantity}
+                            </span>
                             <button
                               onClick={() => increaseQuantity(item.album.id, sticker.id)}
-                              className="p-1 rounded-full hover:bg-gray-200 cursor-pointer"
+                              className="p-2 rounded-r-lg hover:bg-gray-100 cursor-pointer"
                             >
                               <Plus className="h-4 w-4" />
                             </button>
                           </div>
-                          <span className="text-sm font-medium mr-2">
-                            R$ {(sticker.price * sticker.quantity).toFixed(2)}
-                          </span>
+                          <div className="flex flex-col items-end mr-3">
+                            <span className="text-sm font-medium">
+                              R$ {(sticker.price * sticker.quantity).toFixed(2)}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              R$ {sticker.price.toFixed(2)} cada
+                            </span>
+                          </div>
                           <button
                             onClick={() => removeSticker(item.album.id, sticker.id)}
-                            className="p-1 rounded-full hover:bg-gray-200 text-gray-500"
+                            className="p-2 rounded-full hover:bg-red-100 text-red-500 hover:text-red-700"
                           >
                             <X className="h-4 w-4" />
                           </button>
@@ -112,14 +126,6 @@ const CartPage = () => {
               )}
             </div>
           ))}
-
-          {/* <button
-                        onClick={cleanCart}
-                        className="flex items-center bg-red-300 rounded-lg px-5 py-4 text-red-600 hover:bg-red-400 space-x-1 cursor-pointer"
-                    >
-                        <Trash2 className="h-4 w-4" />
-                        <span className="text-sm">Limpar carrinho</span>
-                    </button> */}
         </div>
 
         <div className="md:col-span-1">
@@ -128,13 +134,22 @@ const CartPage = () => {
 
             {itens.map((item) => (
               <div key={item.album.id} className="mb-4">
-                <p className="font-medium text-sm">{item.album.name}</p>
+                <p className="font-medium text-sm mb-2">{item.album.name}</p>
+                {/* Figurinhas */}
                 {item.stickers.map(sticker => (
                   <div key={sticker.id} className="flex justify-between text-xs text-gray-600 mt-1">
-                    <p>{sticker.number} ({stickerTypeInfo[sticker.type].name} ) x{sticker.quantity}</p>
+                    <p>
+                      #{sticker.number} ({stickerTypeInfo[sticker.type].name}) x{sticker.quantity}
+                    </p>
                     <p>R$ {(sticker.price * sticker.quantity).toFixed(2)}</p>
                   </div>
                 ))}
+
+                {/* Total do item */}
+                <div className="flex justify-between text-xs font-medium text-gray-800 mt-2 pt-2 border-t border-gray-100">
+                  <p>Subtotal do álbum:</p>
+                  <p>R$ {(item.stickers.reduce((sum, s) => sum + (s.price * s.quantity), 0)).toFixed(2)}</p>
+                </div>
               </div>
             ))}
 
@@ -154,6 +169,8 @@ const CartPage = () => {
           </div>
         </div>
       </div>
+      
+      {/* Bottom bar for mobile */}
       <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 p-4 md:hidden">
         <div className="container mx-auto flex justify-between items-center">
           <div>

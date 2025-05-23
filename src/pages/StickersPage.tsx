@@ -1,32 +1,57 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, ShoppingCart, Check } from 'lucide-react';
+import { ArrowLeft, ShoppingCart, Check, X, Plus, Minus } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { fetchAlbumById } from '../clients/album';
-import { Album, Sticker, StickerItem } from '../types/album';
+import { Album, Sticker } from '../types/album';
 
 const stickerTypeInfo = {
-  'common': { name: 'Comum'},
-  'frame': { name: 'Frame'},
-  'legend': { name: 'Legend'},
-  'a4': { name: 'A4'}
+  'common': { name: 'Comum', price: 1 },
+  'legend': { name: 'Legend', price: 5 },
+  'a4': { name: 'A4', price: 15 }
 };
 
-const stickerPrices = {
-  'common': 9.90,
-  'frame': 29.90,
-  'legend': 12.90,
-  'a4': 19.90
+interface StickerSelection {
+  stickerId: string;
+  stickerNumber: string;
+  stickerName: string;
+  common: number;
+  legend: number;
+  a4: number;
+}
+
+interface ModalSticker {
+  id: string;
+  number: string;
+  name: string;
+}
+
+// Função para gerar figurinhas baseado no totalStickers
+const generateStickers = (album: Album): ModalSticker[] => {
+  const stickers: ModalSticker[] = [];
+  const totalStickers = album.totalStickers;
+  
+  for (let i = 1; i <= totalStickers; i++) {
+    stickers.push({
+      id: `sticker-${i}`,
+      number: i.toString(),
+      name: `Figurinha ${i}`
+    });
+  }
+  
+  return stickers;
 };
 
 const StickersPage = () => {
   const { albumId } = useParams<{ albumId: string }>();
-  const [stickers, setStickers] = useState<Sticker[]>([]);
+  const [stickers, setStickers] = useState<ModalSticker[]>([]);
   const [album, setAlbum] = useState<Album | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedStickers, setSelectedStickers] = useState<Sticker[]>([]);
-  const [filter, setFilter] = useState<'common' | 'legend' | 'quadro' | 'a4' | ''>('');
+  const [selectedStickers, setSelectedStickers] = useState<StickerSelection[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [showModal, setShowModal] = useState(false);
+  const [currentSticker, setCurrentSticker] = useState<ModalSticker | null>(null);
+  const [modalQuantities, setModalQuantities] = useState({ common: 0, legend: 0, a4: 0 });
   const navigate = useNavigate();
   const { addToCart } = useCart();
 
@@ -37,58 +62,15 @@ const StickersPage = () => {
       if (!albumId) return;
 
       try {
-        setLoading(false);
+        setLoading(true);
 
         const album = await fetchAlbumById(albumId);
         setAlbum(album);
 
-        const allStickers: Sticker[] = [];
-
-        album.commonStickers.forEach((item: StickerItem) => {
-          allStickers.push({
-            id: `common-${item.number}`,
-            albumId: album.id,
-            number: item.number,
-            name: item.name,
-            type: 'common',
-            price: stickerPrices.common
-          });
-        });
-
-        album.frameStickers.forEach((item: StickerItem) => {
-          allStickers.push({
-            id: `frame-${item.number}`,
-            albumId: album.id,
-            number: item.number,
-            name: item.name,
-            type: 'frame',
-            price: stickerPrices.frame
-          });
-        });
-
-        album.legendStickers.forEach((item: StickerItem) => {
-          allStickers.push({
-            id: `legend-${item.number}`,
-            albumId: album.id,
-            number: item.number,
-            name: item.name,
-            type: 'legend',
-            price: stickerPrices.legend
-          });
-        });
-
-        album.a4Stickers.forEach((item: StickerItem) => {
-          allStickers.push({
-            id: `a4-${item.number}`,
-            albumId: album.id,
-            number: item.number,
-            name: item.name,
-            type: 'a4',
-            price: stickerPrices.a4
-          });
-        });
-
-        setStickers(allStickers);
+        // Gerar figurinhas baseado no totalStickers
+        const generatedStickers = generateStickers(album);
+        setStickers(generatedStickers);
+        
         setLoading(false);
       } catch (err) {
         console.error('Erro ao buscar álbum ou figurinhas:', err);
@@ -100,32 +82,129 @@ const StickersPage = () => {
     getAlbumAndStickers();
   }, [albumId]);
 
-  const toggleSticker = (sticker: Sticker) => {
-    if (selectedStickers.some(s => s.id === sticker.id)) {
-      setSelectedStickers(selectedStickers.filter(s => s.id !== sticker.id));
+  const handleStickerClick = (sticker: ModalSticker) => {
+    setCurrentSticker(sticker);
+    setModalQuantities({ common: 0, legend: 0, a4: 0 });
+    setShowModal(true);
+  };
+
+  const updateQuantity = (type: 'common' | 'legend' | 'a4', increment: boolean) => {
+    setModalQuantities(prev => ({
+      ...prev,
+      [type]: increment ? prev[type] + 1 : Math.max(0, prev[type] - 1)
+    }));
+  };
+
+  const handleAddToSelection = () => {
+    if (!currentSticker) return;
+
+    const totalQuantity = modalQuantities.common + modalQuantities.legend + modalQuantities.a4;
+    if (totalQuantity === 0) return;
+
+    const existingIndex = selectedStickers.findIndex(s => s.stickerId === currentSticker.id);
+    
+    if (existingIndex >= 0) {
+      // Atualizar seleção existente
+      setSelectedStickers(prev => prev.map((item, index) => 
+        index === existingIndex 
+          ? {
+              ...item,
+              common: modalQuantities.common,
+              legend: modalQuantities.legend,
+              a4: modalQuantities.a4
+            }
+          : item
+      ));
     } else {
-      setSelectedStickers([...selectedStickers, sticker]);
+      // Adicionar nova seleção
+      setSelectedStickers(prev => [...prev, {
+        stickerId: currentSticker.id,
+        stickerNumber: currentSticker.number,
+        stickerName: currentSticker.name,
+        common: modalQuantities.common,
+        legend: modalQuantities.legend,
+        a4: modalQuantities.a4
+      }]);
     }
+
+    setShowModal(false);
+    setCurrentSticker(null);
+  };
+
+  const removeFromSelection = (stickerId: string) => {
+    setSelectedStickers(prev => prev.filter(s => s.stickerId !== stickerId));
   };
 
   const handleAddToCart = () => {
-    console.log('Adding to cart:', selectedStickers.map(s => s.id));
-    if (album && selectedStickers.length > 0) {
-      addToCart(album, selectedStickers);
-      setShowSuccess(true);
-      setSelectedStickers([]);
-      setTimeout(() => {
-        setShowSuccess(false);
-      }, 1500);
-    }
+    if (!album || selectedStickers.length === 0) return;
+
+    // Converter seleções para formato de stickers para o carrinho
+    const cartStickers: Sticker[] = [];
+    
+    selectedStickers.forEach(selection => {
+      // Adicionar stickers comuns
+      for (let i = 0; i < selection.common; i++) {
+        cartStickers.push({
+          id: `${selection.stickerId}-common-${i}`,
+          albumId: album.id,
+          number: selection.stickerNumber,
+          name: selection.stickerName,
+          type: 'common',
+          price: stickerTypeInfo.common.price
+        });
+      }
+      
+      // Adicionar stickers legend
+      for (let i = 0; i < selection.legend; i++) {
+        cartStickers.push({
+          id: `${selection.stickerId}-legend-${i}`,
+          albumId: album.id,
+          number: selection.stickerNumber,
+          name: selection.stickerName,
+          type: 'legend',
+          price: stickerTypeInfo.legend.price
+        });
+      }
+      
+      // Adicionar stickers A4
+      for (let i = 0; i < selection.a4; i++) {
+        cartStickers.push({
+          id: `${selection.stickerId}-a4-${i}`,
+          albumId: album.id,
+          number: selection.stickerNumber,
+          name: selection.stickerName,
+          type: 'a4',
+          price: stickerTypeInfo.a4.price
+        });
+      }
+    });
+
+    addToCart(album, cartStickers);
+    setShowSuccess(true);
+    setSelectedStickers([]);
+    setTimeout(() => {
+      setShowSuccess(false);
+    }, 1500);
   };
 
-  const filteredStickers = filter
-    ? stickers.filter(sticker => sticker.type === filter)
-    : stickers;
+  const getTotalPrice = () => {
+    return selectedStickers.reduce((total, selection) => {
+      return total + 
+        (selection.common * stickerTypeInfo.common.price) +
+        (selection.legend * stickerTypeInfo.legend.price) +
+        (selection.a4 * stickerTypeInfo.a4.price);
+    }, 0);
+  };
 
-  // Obter tipos únicos das figurinhas disponíveis
-  const availableTypes = [...new Set(stickers.map(sticker => sticker.type))];
+  const getTotalItems = () => {
+    return selectedStickers.reduce((total, selection) => {
+      return total + selection.common + selection.legend + selection.a4;
+    }, 0);
+  };
+
+  const isSelected = (stickerId: string) => {
+    return selectedStickers.some(s => s.stickerId === stickerId);
+  };
 
   return (
     <div className="space-y-6 pb-24">
@@ -164,26 +243,62 @@ const StickersPage = () => {
             </div>
           )}
 
-          {/* Filtro por tipo */}
-          <div className="flex overflow-x-auto pb-2 space-x-2">
-            <button
-              className={`px-4 py-2 rounded-full ${filter === '' ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700'}`}
-              onClick={() => setFilter('')}
-            >
-              Todas
-            </button>
-            {availableTypes.map(type => (
-              <button
-                key={type}
-                className={`px-4 py-2 rounded-full whitespace-nowrap ${filter === type ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700'}`}
-                onClick={() => setFilter(type as "" | "common" | "legend" | "quadro" | "a4")}
-              >
-                {stickerTypeInfo[type]?.name || type}
-              </button>
-            ))}
+          {/* Informações do álbum */}
+          {album && (
+            <div className="bg-gray-50 p-4 rounded-lg">
+              <p className="text-sm text-gray-600">
+                Total de figurinhas disponíveis: {album.totalStickers}
+              </p>
+            </div>
+          )}
+
+          {/* Tabela de preços */}
+          <div className="bg-white border border-gray-200 rounded-lg p-4">
+            <h3 className="font-semibold mb-3">Preços por tipo:</h3>
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="bg-gray-100 p-3 rounded-lg">
+                <p className="text-sm font-medium">Comum</p>
+                <p className="text-lg font-bold text-gray-700">R$ {stickerTypeInfo.common.price.toFixed(2)}</p>
+              </div>
+              <div className="bg-purple-100 p-3 rounded-lg">
+                <p className="text-sm font-medium">Legend</p>
+                <p className="text-lg font-bold text-purple-700">R$ {stickerTypeInfo.legend.price.toFixed(2)}</p>
+              </div>
+              <div className="bg-blue-100 p-3 rounded-lg">
+                <p className="text-sm font-medium">A4</p>
+                <p className="text-lg font-bold text-blue-700">R$ {stickerTypeInfo.a4.price.toFixed(2)}</p>
+              </div>
+            </div>
           </div>
 
-          {filteredStickers.length === 0 ? (
+          {/* Lista de figurinhas selecionadas */}
+          {selectedStickers.length > 0 && (
+            <div className="bg-white border border-gray-200 rounded-lg p-4">
+              <h3 className="font-semibold mb-3">Figurinhas selecionadas:</h3>
+              <div className="space-y-2">
+                {selectedStickers.map((selection) => (
+                  <div key={selection.stickerId} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
+                    <div>
+                      <p className="font-medium">Figurinha {selection.stickerNumber}</p>
+                      <p className="text-sm text-gray-600">
+                        {selection.common > 0 && `${selection.common} Comum `}
+                        {selection.legend > 0 && `${selection.legend} Legend `}
+                        {selection.a4 > 0 && `${selection.a4} A4`}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => removeFromSelection(selection.stickerId)}
+                      className="text-red-500 hover:text-red-700 p-1"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {stickers.length === 0 ? (
             <div className="text-center py-10">
               <p className="text-gray-500">Nenhuma figurinha disponível para este álbum.</p>
               <Link to="/schools" className="mt-4 inline-block text-primary-600 hover:underline">
@@ -192,43 +307,28 @@ const StickersPage = () => {
             </div>
           ) : (
             <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-              {filteredStickers.map((sticker) => {
-                const isSelected = selectedStickers.some(s => s.id === sticker.id);
-                const typeInfo = stickerTypeInfo[sticker.type];
-                const bgColorClass =
-                  sticker.type === 'a4' ? 'bg-blue-50' :
-                    sticker.type === 'frame' ? 'bg-amber-50' :
-                      sticker.type === 'legend' ? 'bg-purple-50' :
-                        'bg-gray-100';
-
-                const stickerStyle =
-                  sticker.type === 'a4' ? 'w-14 h-18' :
-                    sticker.type === 'frame' ? 'w-16 h-16 border-2 border-amber-200' :
-                      sticker.type === 'legend' ? 'w-14 h-18 bg-gradient-to-r from-purple-100 to-pink-100' :
-                        'w-14 h-18';
+              {stickers.map((sticker) => {
+                const selected = isSelected(sticker.id);
 
                 return (
                   <div
                     key={sticker.id}
-                    className={`cursor-pointer relative bg-white rounded-lg shadow-sm overflow-hidden border-2 ${isSelected ? 'border-primary-500' : 'border-transparent'}`}
-                    onClick={() => toggleSticker(sticker)}
+                    className={`cursor-pointer relative bg-white rounded-lg shadow-sm overflow-hidden border-2 ${selected ? 'border-primary-500' : 'border-gray-200'} hover:border-primary-300 transition-colors`}
+                    onClick={() => handleStickerClick(sticker)}
                   >
-                    {isSelected && (
+                    {selected && (
                       <div className="absolute top-1 right-1 bg-primary-500 rounded-full p-1">
                         <Check className="h-3 w-3 text-white" />
                       </div>
                     )}
-                    <div className={`h-20 ${bgColorClass} flex items-center justify-center`}>
-                      <div className={`${stickerStyle} bg-white border border-gray-300 flex items-center justify-center rounded`}>
+                    <div className="h-20 bg-gray-100 flex items-center justify-center">
+                      <div className="w-14 h-18 bg-white border border-gray-300 flex items-center justify-center rounded">
                         <p className="text-sm font-medium text-gray-700">{sticker.number}</p>
                       </div>
                     </div>
                     <div className="p-2">
                       <p className="text-xs text-gray-700 truncate" title={sticker.name}>{sticker.name}</p>
-                      <div className="flex justify-between items-center mt-1">
-                        <p className="text-xs font-medium">{typeInfo?.name || sticker.type}</p>
-                        <p className="font-semibold text-xs">R${sticker.price.toFixed(2)}</p>
-                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Clique para escolher tipo</p>
                     </div>
                   </div>
                 );
@@ -238,14 +338,78 @@ const StickersPage = () => {
         </>
       )}
 
+      {/* Modal para seleção de tipos */}
+      {showModal && currentSticker && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Figurinha {currentSticker.number}</h3>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {Object.entries(stickerTypeInfo).map(([type, info]) => (
+                <div key={type} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                  <div>
+                    <p className="font-medium">{info.name}</p>
+                    <p className="text-sm text-gray-600">R$ {info.price.toFixed(2)} cada</p>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <button
+                      onClick={() => updateQuantity(type as 'common' | 'legend' | 'a4', false)}
+                      className="p-1 rounded-full hover:bg-gray-100"
+                      disabled={modalQuantities[type as 'common' | 'legend' | 'a4'] === 0}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </button>
+                    <span className="w-8 text-center font-medium">
+                      {modalQuantities[type as 'common' | 'legend' | 'a4']}
+                    </span>
+                    <button
+                      onClick={() => updateQuantity(type as 'common' | 'legend' | 'a4', true)}
+                      className="p-1 rounded-full hover:bg-gray-100"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <div className="flex justify-between items-center mb-4">
+                <span className="font-medium">Total:</span>
+                <span className="font-bold text-lg">
+                  R$ {(
+                    modalQuantities.common * stickerTypeInfo.common.price +
+                    modalQuantities.legend * stickerTypeInfo.legend.price +
+                    modalQuantities.a4 * stickerTypeInfo.a4.price
+                  ).toFixed(2)}
+                </span>
+              </div>
+              <button
+                onClick={handleAddToSelection}
+                disabled={modalQuantities.common + modalQuantities.legend + modalQuantities.a4 === 0}
+                className="w-full bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+              >
+                Adicionar à seleção
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {selectedStickers.length > 0 && (
         <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 p-4">
           <div className="container mx-auto flex justify-between items-center">
             <div>
-              <p className="text-sm text-gray-600">{selectedStickers.length} figurinhas selecionadas</p>
-              <p className="font-semibold">
-                Total: R$ {selectedStickers.reduce((sum, sticker) => sum + sticker.price, 0).toFixed(2)}
-              </p>
+              <p className="text-sm text-gray-600">{getTotalItems()} figurinhas selecionadas</p>
+              <p className="font-semibold">Total: R$ {getTotalPrice().toFixed(2)}</p>
             </div>
             <button
               onClick={handleAddToCart}
