@@ -2,6 +2,7 @@ import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { ArrowLeft, CreditCard, Truck, User, CheckCircle, Loader2 } from 'lucide-react';
+import { stickerTypeInfo } from './CartPage';
 
 interface PersonalInfo {
   name: string;
@@ -661,7 +662,7 @@ const CheckoutPage = () => {
                 <p className="font-medium text-sm">{item.album.name}</p>
                 {item.stickers.map(sticker => (
                   <div key={sticker.id} className="flex justify-between text-xs text-gray-600 mt-1">
-                    <p>{sticker.id} ({sticker.type}) x{sticker.quantity}</p>
+                    <p>[{sticker.number}] - ({stickerTypeInfo[sticker.type].name}) x{sticker.quantity}</p>
                     <p>R$ {(sticker.price * sticker.quantity).toFixed(2)}</p>
                   </div>
                 ))}

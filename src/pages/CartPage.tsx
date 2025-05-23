@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { ArrowLeft, ShoppingBag, X, Minus, Plus } from 'lucide-react';
 
-const stickerTypeInfo = {
+export const stickerTypeInfo = {
   'common': { name: 'Comum', price: 1 },
   'legend': { name: 'Legend', price: 5 },
   'a4': { name: 'A4', price: 15 }
