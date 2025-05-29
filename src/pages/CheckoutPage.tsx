@@ -2,7 +2,7 @@ import { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { ArrowLeft, CreditCard, Truck, User, CheckCircle, Loader2 } from 'lucide-react';
-import { stickerTypeInfo } from './CartPage';
+import OrderSummary from '@/components/OrderSummary';
 
 interface PersonalInfo {
   name: string;
@@ -47,13 +47,11 @@ interface ViaCepResponse {
 
 const CheckoutPage = () => {
   const navigate = useNavigate();
-  const { itens, calcTotal } = useCart();
+  const { finalTotal } = useCart();
 
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [isLoadingCep, setIsLoadingCep] = useState<boolean>(false);
   const [cepError, setCepError] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [orderCompleted, setOrderCompleted] = useState<boolean>(false);
 
   const [formData, setFormData] = useState<FormData>({
     personalInfo: {
@@ -183,35 +181,10 @@ const CheckoutPage = () => {
       navigate('/checkout/pix', {
         state: {
           formData: formData,
-          totalAmount: calcTotal()
+          totalAmount: finalTotal()
         }
       });
       return;
-    }
-
-    // Processar pagamento com cartão de crédito
-    if (formData.paymentInfo.method === 'creditCard') {
-      setIsSubmitting(true);
-
-      try {
-        // Simular o processamento do cartão (na vida real você usaria uma API de pagamento)
-        setTimeout(() => {
-          setOrderCompleted(true);
-          setTimeout(() => {
-            // Limpar carrinho e redirecionar para confirmação
-            navigate('/order-confirmation', {
-              state: {
-                orderId: `cc-${Date.now()}`,
-                paymentMethod: 'creditCard'
-              }
-            });
-          }, 2000);
-        }, 1500);
-      } catch (error) {
-        console.error('Erro ao processar pagamento:', error);
-      } finally {
-        setIsSubmitting(false);
-      }
     }
   };
 
@@ -449,17 +422,6 @@ const CheckoutPage = () => {
                     Selecione a forma de pagamento
                   </p>
                   <div className="space-y-2">
-                    {/* <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="creditCard"
-                        checked={formData.paymentInfo.method === 'creditCard'}
-                        onChange={() => handleInputChange('paymentInfo', 'method', 'creditCard')}
-                        className="text-primary-600"
-                      />
-                      <span>Cartão de Crédito</span>
-                    </label> */}
                     <div></div>
                     <label className="flex items-center space-x-2 cursor-pointer">
                       <input
@@ -471,17 +433,6 @@ const CheckoutPage = () => {
                         className="text-primary-600"
                       />
                       <span>PIX</span>
-                    </label>
-                    <label className="flex items-center space-x-2 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="paymentMethod"
-                        value="cc"
-                        checked={formData.paymentInfo.method === 'cc'}
-                        onChange={() => handleInputChange('paymentInfo', 'method', 'cc')}
-                        className="text-primary-600"
-                      />
-                      <span>Cartão de Crédito</span>
                     </label>
                   </div>
                 </div>
@@ -512,7 +463,6 @@ const CheckoutPage = () => {
                         placeholder="0000 0000 0000 0000"
                         value={formData.paymentInfo.cardNumber}
                         onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                          // Formatar número do cartão com espaços a cada 4 dígitos
                           const value = e.target.value.replace(/\D/g, '');
                           const formattedValue = value
                             .replace(/(\d{4})(?=\d)/g, '$1 ')
@@ -581,20 +531,10 @@ const CheckoutPage = () => {
                 <div className="pt-4">
                   <button
                     type="submit"
-                    disabled={!formData.paymentInfo.method || isSubmitting}
+                    disabled={!formData.paymentInfo.method}
                     className="w-full bg-primary-600 text-white py-2 rounded-md hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer"
                   >
-                    {isSubmitting ? (
-                      <div className="flex items-center justify-center">
-                        <Loader2 className="animate-spin h-5 w-5 mr-2" />
-                        Processando...
-                      </div>
-                    ) : orderCompleted ? (
-                      <div className="flex items-center justify-center">
-                        <CheckCircle className="h-5 w-5 mr-2" />
-                        Pedido Realizado!
-                      </div>
-                    ) : formData.paymentInfo.method === 'pix' ? (
+                    {formData.paymentInfo.method === 'pix' ? (
                       "Gerar PIX"
                     ) : (
                       "Finalizar Pedido"
@@ -611,7 +551,7 @@ const CheckoutPage = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div>
       <div className="flex items-center space-x-2 mb-6">
         <button
           onClick={goBack}
@@ -622,8 +562,8 @@ const CheckoutPage = () => {
         <h1 className="text-2xl font-bold">Checkout</h1>
       </div>
 
-      <div className="flex flex-col md:flex-row gap-6">
-        <div className="w-full md:w-2/3">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
           {/* Indicador de progresso */}
           <div className="mb-6">
             <div className="flex items-center justify-between">
@@ -652,38 +592,12 @@ const CheckoutPage = () => {
 
           {renderStepForm()}
         </div>
-
-        <div className="w-full md:w-1/3">
-          <div className="bg-white rounded-lg shadow-sm p-4 sticky top-4">
-            <h3 className="font-semibold mb-4">Resumo do pedido</h3>
-
-            {itens.map((item) => (
-              <div key={item.album.id} className="mb-4">
-                <p className="font-medium text-sm">{item.album.name}</p>
-                {item.stickers.map(sticker => (
-                  <div key={sticker.id} className="flex justify-between text-xs text-gray-600 mt-1">
-                    <p>[{sticker.number}] - ({stickerTypeInfo[sticker.type].name}) x{sticker.quantity}</p>
-                    <p>R$ {(sticker.price * sticker.quantity).toFixed(2)}</p>
-                  </div>
-                ))}
-              </div>
-            ))}
-
-            <div className="border-t border-gray-200 my-4 pt-4">
-              <div className="flex justify-between text-sm mb-2">
-                <p>Subtotal</p>
-                <p>R$ {calcTotal().toFixed(2)}</p>
-              </div>
-              <div className="flex justify-between text-sm mb-2">
-                <p>Frete</p>
-                <p>R$ 0,00</p>
-              </div>
-              <div className="flex justify-between font-semibold mt-4">
-                <p>Total</p>
-                <p>R$ {calcTotal().toFixed(2)}</p>
-              </div>
-            </div>
-          </div>
+        <div className="lg:col-span-1">
+          <OrderSummary
+            showCouponInput={false}
+            showFinishButton={false}
+            className="lg:sticky lg:top-4"
+          />
         </div>
       </div>
     </div>

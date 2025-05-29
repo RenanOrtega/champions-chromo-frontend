@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Album, Sticker } from '../types/album';
 import { Coupon } from '@/types/coupon';
-import { useCoupon } from '@/hooks/use-coupon';
 
 // Update CartSticker to store stickers with quantities
 export interface CartSticker extends Sticker {
@@ -21,7 +20,7 @@ interface CartContextType {
   increaseQuantity: (albumId: string, stickerId: string) => void;
   decreaseQuantity: (albumId: string, stickerId: string) => void;
   removeSticker: (albumId: string, stickerId: string) => void;
-  calcTotal: () => number;
+  finalTotal: () => number;
   // Cupom functions
   appliedCoupon: Coupon | null;
   applyCoupon: (coupon: Coupon) => void;
@@ -38,6 +37,8 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
+  const [totalValue, setTotalValue] = useState<number>(0);
+
   // Load items from localStorage when component mounts
   const [itens, setItens] = useState<CartItem[]>(() => {
     try {
@@ -70,10 +71,15 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       if (savedCoupon) {
         const coupon = JSON.parse(savedCoupon);
         // Verificar se o cupom ainda é válido
-        const now = new Date();
-        const expiresAt = new Date(coupon.expiresAt);
+        // const now = new Date();
+        // const expiresAt = new Date(coupon.expiresAt);
 
-        if (expiresAt < now || !coupon.isActive) {
+        // if (expiresAt < now || !coupon.isActive) {
+        //   localStorage.removeItem('appliedCoupon');
+        //   return null;
+        // }
+
+        if (!coupon.isActive) {
           localStorage.removeItem('appliedCoupon');
           return null;
         }
@@ -86,8 +92,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       return null;
     }
   });
-
-  const { calculateDiscount } = useCoupon();
 
   // Save items to localStorage whenever they change
   useEffect(() => {
@@ -295,26 +299,76 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const calculateOrderTotals = (shippingCost: number = 0) => {
     const subtotal = calcTotal();
 
+    console.log("SubTotal:", subtotal);
+    console.log("Cupom:", appliedCoupon);
+
     if (!appliedCoupon) {
+      const finalTotal = subtotal + shippingCost;
+      setTotalValue(finalTotal);
+
       return {
         subtotal,
         discount: 0,
         shippingDiscount: 0,
-        finalTotal: subtotal + shippingCost,
+        finalTotal: finalTotal,
         discountType: ''
       };
     }
 
-    const { discount, discountType, finalTotal, shippingDiscount } = calculateDiscount(subtotal, shippingCost);
+    const coupon = appliedCoupon;
+    let discount = 0;
+    let shippingDiscount = 0;
+    let discountType = '';
+
+    // Verificar valor mínimo
+    if (subtotal < coupon.minPurchaseValue) {
+      const finalTotal = subtotal + shippingCost;
+      setTotalValue(finalTotal);
+      return {
+        subtotal,
+        discount: 0,
+        discountType: `Valor mínimo de R$ ${coupon.minPurchaseValue.toFixed(2)} não atingido`,
+        finalTotal: finalTotal,
+        shippingDiscount: 0
+      };
+    }
+
+    // Calcular desconto baseado no tipo
+    switch (coupon.type.toString()) {
+      case "Percent": // CouponType.Percent
+        discount = (subtotal * coupon.value) / 100;
+        discountType = `${coupon.value}% de desconto`;
+        break;
+
+      case "Fixed": // CouponType.Fixed
+        discount = Math.min(coupon.value, subtotal);
+        discountType = `R$ ${coupon.value.toFixed(2)} de desconto`;
+        break;
+
+      case "FreeShipping": // CouponType.FreeShipping
+        shippingDiscount = shippingCost;
+        discountType = 'Frete grátis';
+        break;
+    }
+
+    console.log("Discount:", discount);
+    console.log("DiscountType:", discountType);
+
+    const finalTotal = subtotal - discount + shippingCost - shippingDiscount;
+    setTotalValue(finalTotal);
 
     return {
       subtotal,
       discount,
       shippingDiscount,
-      finalTotal,
+      finalTotal: Math.max(0, finalTotal),
       discountType
     };
   };
+
+  const finalTotal = () => {
+    return totalValue;
+  }
 
   return (
     <CartContext.Provider
@@ -326,7 +380,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         increaseQuantity,
         decreaseQuantity,
         removeSticker,
-        calcTotal,
+        finalTotal,
         appliedCoupon,
         applyCoupon,
         removeCoupon,

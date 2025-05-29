@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
-import { Ticket, X, Check, Loader2 } from 'lucide-react';
-import { useCoupon } from '@/hooks/use-coupon';
+import { useState } from 'react';
+import { Check, X, Ticket, Loader2 } from 'lucide-react';
+import { AxiosError } from 'axios';
 import { useCart } from '@/context/CartContext';
+import { validateCouponRequest } from '@/clients/coupon';
 
 interface CouponInputProps {
     className?: string;
@@ -10,23 +11,49 @@ interface CouponInputProps {
 export const CouponInput: React.FC<CouponInputProps> = ({ className = '' }) => {
     const [couponCode, setCouponCode] = useState('');
     const [isApplying, setIsApplying] = useState(false);
-    const { validateCoupon, error: couponError } = useCoupon();
-    const { appliedCoupon, applyCoupon, removeCoupon, calcTotal } = useCart();
+    const [couponError, setCouponError] = useState<string | null>(null);
+
+    const { appliedCoupon, applyCoupon, removeCoupon } = useCart();
+
+    const validateCoupon = async (code: string) => {
+        try {
+            const response = await validateCouponRequest(code);
+
+            if (response.coupon == null) {
+                setCouponError(response.message);
+                return null;
+            }
+
+            const coupon = response.coupon;
+
+            if (!coupon.isActive) {
+                setCouponError("Cupom não está ativo.");
+                return null;
+            }
+
+            if (coupon.usedCount >= coupon.usageLimit) {
+                setCouponError("Cupom esgotado.");
+                return null;
+            }
+
+            setCouponError(null);
+            return coupon;
+        } catch (error) {
+            const errorMessage = error instanceof AxiosError ? error.response?.data?.message : 'Erro desconhecido.';
+            setCouponError(errorMessage);
+            return null;
+        }
+    };
 
     const handleApplyCoupon = async () => {
         if (!couponCode.trim()) return;
 
         setIsApplying(true);
+        setCouponError(null);
+
         const validatedCoupon = await validateCoupon(couponCode.trim().toUpperCase());
 
         if (validatedCoupon) {
-            // Verificar valor mínimo
-            const subtotal = calcTotal();
-            if (subtotal < validatedCoupon.minPurchaseValue) {
-                // O erro já será tratado pelo calculateOrderTotals, mas podemos aplicar mesmo assim
-                // para mostrar a mensagem de valor mínimo
-            }
-
             applyCoupon(validatedCoupon);
             setCouponCode('');
         }
@@ -37,6 +64,7 @@ export const CouponInput: React.FC<CouponInputProps> = ({ className = '' }) => {
     const handleRemoveCoupon = () => {
         removeCoupon();
         setCouponCode('');
+        setCouponError(null);
     };
 
     const handleKeyPress = (e: React.KeyboardEvent) => {

@@ -18,3 +18,9 @@ export interface Sticker {
   type: 'common' | 'legend' | 'a4';
   price: number;
 }
+
+export const stickerTypeInfo = {
+  'common': { name: 'Comum', price: 1 },
+  'legend': { name: 'Legend', price: 5 },
+  'a4': { name: 'A4', price: 15 }
+};

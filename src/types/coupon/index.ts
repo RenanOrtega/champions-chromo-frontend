@@ -23,6 +23,6 @@ export interface CouponState {
 }
 
 export interface CouponValidateResponse {
-    coupon: Coupon;
+    coupon: Coupon | null;
     message: string;
 }
