@@ -5,6 +5,9 @@ export interface Album {
   releaseDate: string;
   coverImage: string;
   totalStickers: number;
+  hasCommon: boolean;
+  hasLegend: boolean;
+  hasA4: boolean;
 }
 
 export interface Sticker {

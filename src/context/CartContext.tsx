@@ -1,5 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Album, Sticker } from '../types/album';
+import { Coupon } from '@/types/coupon';
+import { useCoupon } from '@/hooks/use-coupon';
 
 // Update CartSticker to store stickers with quantities
 export interface CartSticker extends Sticker {
@@ -20,6 +22,17 @@ interface CartContextType {
   decreaseQuantity: (albumId: string, stickerId: string) => void;
   removeSticker: (albumId: string, stickerId: string) => void;
   calcTotal: () => number;
+  // Cupom functions
+  appliedCoupon: Coupon | null;
+  applyCoupon: (coupon: Coupon) => void;
+  removeCoupon: () => void;
+  calculateOrderTotals: (shippingCost?: number) => {
+    subtotal: number;
+    discount: number;
+    shippingDiscount: number;
+    finalTotal: number;
+    discountType: string;
+  };
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -50,6 +63,32 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   });
 
+  // Load applied coupon from localStorage
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(() => {
+    try {
+      const savedCoupon = localStorage.getItem('appliedCoupon');
+      if (savedCoupon) {
+        const coupon = JSON.parse(savedCoupon);
+        // Verificar se o cupom ainda é válido
+        const now = new Date();
+        const expiresAt = new Date(coupon.expiresAt);
+
+        if (expiresAt < now || !coupon.isActive) {
+          localStorage.removeItem('appliedCoupon');
+          return null;
+        }
+
+        return coupon;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error parsing applied coupon from localStorage:', error);
+      return null;
+    }
+  });
+
+  const { calculateDiscount } = useCoupon();
+
   // Save items to localStorage whenever they change
   useEffect(() => {
     try {
@@ -62,6 +101,19 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       console.error('Error saving cart items to localStorage:', error);
     }
   }, [itens]);
+
+  // Save applied coupon to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      if (appliedCoupon) {
+        localStorage.setItem('appliedCoupon', JSON.stringify(appliedCoupon));
+      } else {
+        localStorage.removeItem('appliedCoupon');
+      }
+    } catch (error) {
+      console.error('Error saving applied coupon to localStorage:', error);
+    }
+  }, [appliedCoupon]);
 
   // Helper function to create a unique key for grouping stickers
   const getStickerGroupKey = (sticker: Sticker) => {
@@ -103,8 +155,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             });
           } else {
             // New sticker group, add with quantity 1
-            stickerMap.set(key, { 
-              ...sticker, 
+            stickerMap.set(key, {
+              ...sticker,
               quantity: 1,
               // Create a unique ID based on number and type for grouping
               id: `${sticker.albumId}-${sticker.number}-${sticker.type}`
@@ -137,8 +189,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             });
           } else {
             // Create new group
-            stickerMap.set(key, { 
-              ...sticker, 
+            stickerMap.set(key, {
+              ...sticker,
               quantity: 1,
               // Create a unique ID based on number and type for grouping
               id: `${sticker.albumId}-${sticker.number}-${sticker.type}`
@@ -219,6 +271,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const cleanCart = () => {
     setItens([]);
+    setAppliedCoupon(null);
   };
 
   const calcTotal = () => {
@@ -231,6 +284,38 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     return totalInDecimal;
   };
 
+  const applyCoupon = (coupon: Coupon) => {
+    setAppliedCoupon(coupon);
+  };
+
+  const removeCoupon = () => {
+    setAppliedCoupon(null);
+  };
+
+  const calculateOrderTotals = (shippingCost: number = 0) => {
+    const subtotal = calcTotal();
+
+    if (!appliedCoupon) {
+      return {
+        subtotal,
+        discount: 0,
+        shippingDiscount: 0,
+        finalTotal: subtotal + shippingCost,
+        discountType: ''
+      };
+    }
+
+    const { discount, discountType, finalTotal, shippingDiscount } = calculateDiscount(subtotal, shippingCost);
+
+    return {
+      subtotal,
+      discount,
+      shippingDiscount,
+      finalTotal,
+      discountType
+    };
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -241,7 +326,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         increaseQuantity,
         decreaseQuantity,
         removeSticker,
-        calcTotal
+        calcTotal,
+        appliedCoupon,
+        applyCoupon,
+        removeCoupon,
+        calculateOrderTotals
       }}
     >
       {children}

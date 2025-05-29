@@ -26,9 +26,9 @@ import NotFoundPage from "./pages/NotFoundPage";
             <Route path="success" element={<SuccessPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
-        </Routes>
-      </CartProvider>
-    )
+        </Routes> 
+      </CartProvider> 
+    )   
   }
 
   export default App;
