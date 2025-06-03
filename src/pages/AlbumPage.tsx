@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Album as AlbumIcon, ArrowLeft } from 'lucide-react';
+import { Album as AlbumIcon, ArrowLeft, Star, Hash } from 'lucide-react';
 import { fetchAlbumsBySchoolId } from '../clients/album';
 import { Album } from '../types/album';
 
@@ -15,6 +15,7 @@ const AlbumPage = () => {
   const [albums, setAlbums] = useState<Album[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -41,6 +42,41 @@ const AlbumPage = () => {
     }
   }, [schoolId]);
 
+  const handleImageError = (albumId: string) => {
+    setImageErrors(prev => new Set([...prev, albumId]));
+  };
+
+  const getStickerTypesBadges = (album: Album) => {
+    const badges = [];
+    
+    if (album.hasCommon) {
+      badges.push(
+        <Badge key="common" variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+          Comuns
+        </Badge>
+      );
+    }
+    
+    if (album.hasLegend) {
+      badges.push(
+        <Badge key="legend" variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
+          <Star className="w-3 h-3 mr-1" />
+          Legends
+        </Badge>
+      );
+    }
+    
+    if (album.hasA4) {
+      badges.push(
+        <Badge key="a4" variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+          A4
+        </Badge>
+      );
+    }
+
+    return badges;
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex items-center mb-6">
@@ -56,18 +92,26 @@ const AlbumPage = () => {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
             <Card key={i} className="overflow-hidden">
-              <div className="h-48 bg-muted flex items-center justify-center">
-                <Skeleton className="h-24 w-24" />
+              <div className="aspect-[3/4] bg-muted flex items-center justify-center">
+                <Skeleton className="h-24 w-24 rounded-lg" />
               </div>
-              <CardContent className="p-4 pt-6">
-                <Skeleton className="h-6 w-3/4 mb-4" />
-                <Skeleton className="h-4 w-1/2 mb-2" />
-                <Skeleton className="h-4 w-1/3 mb-4" />
-                <Skeleton className="h-10 w-full mt-4" />
+              <CardContent className="p-4">
+                <Skeleton className="h-6 w-3/4 mb-3" />
+                <div className="flex gap-2 mb-3">
+                  <Skeleton className="h-5 w-16" />
+                  <Skeleton className="h-5 w-12" />
+                </div>
+                <div className="flex gap-1 mb-4">
+                  <Skeleton className="h-4 w-12" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
               </CardContent>
+              <CardFooter className="p-4 pt-0">
+                <Skeleton className="h-10 w-full" />
+              </CardFooter>
             </Card>
           ))}
         </div>
@@ -91,35 +135,76 @@ const AlbumPage = () => {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {albums.map((album) => {
                 const releaseYear = new Date(album.releaseDate).getFullYear();
+                const hasImageError = imageErrors.has(album.id);
 
                 return (
                   <Card
                     key={album.id}
-                    className="overflow-hidden"
+                    className="overflow-hidden hover:shadow-lg transition-all duration-300 group"
                   >
-                    <CardHeader className="h-48 bg-muted flex items-center justify-center">
-                      <AlbumIcon className="h-16 w-16 text-muted-foreground" />
+                    <CardHeader className="aspect-[2/2] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-0 relative overflow-hidden">
+                      {album.coverImage && !hasImageError ? (
+                        <>
+                          <img
+                            src={album.coverImage}
+                            alt={album.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            onError={() => handleImageError(album.id)}
+                            loading="lazy"
+                          />
+                          {/* Overlay gradient for better text readability if needed */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        </>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center text-gray-400 bg-gradient-to-br from-gray-100 to-gray-200 w-full h-full">
+                          <AlbumIcon className="h-16 w-16 mb-2" />
+                          <span className="text-xs text-center px-2">Sem imagem de capa</span>
+                        </div>
+                      )}
+                      
+                      {/* Badge de ano no canto superior direito */}
+                      {
+                        releaseYear === 0 ? null : (
+                          <div className="absolute top-3 right-3">
+                            <Badge variant="secondary" className="bg-white/90 text-gray-700 shadow-sm">
+                              {releaseYear}
+                            </Badge>
+                          </div>
+                        ) 
+                      }
                     </CardHeader>
-                    <CardContent className="p-4">
-                      <h3 className="font-semibold text-lg">{album.name}</h3>
-                      <div className='flex items-center gap-2 mt-2'>
-                        <Badge variant="outline">
+                    
+                    <CardContent>
+                      <div>
+                        <h3 className="font-semibold text-lg leading-tight line-clamp-2">
+                          {album.name}
+                        </h3>
+                      </div>
+                      
+                      {/* Total de figurinhas com ícone */}
+                      <div className="flex items-center gap-2 pt-1 pb-1">
+                        <Hash className="w-4 h-4 text-gray-500" />
+                        <span className="text-sm text-gray-600">
                           {album.totalStickers} figurinhas
-                        </Badge>
-                        <Badge variant="secondary" className="bg-secondary-300">
-                          Ano: {releaseYear}
-                        </Badge>
+                        </span>
+                      </div>
+                      
+                      {/* Tipos de figurinhas */}
+                      <div className="flex flex-wrap gap-1">
+                        {getStickerTypesBadges(album)}
                       </div>
                     </CardContent>
-                    <CardFooter className="p-4 pt-0">
-                      <Button className="w-full bg-primary-400 hover:bg-primary-500" asChild>
-                        <Link
-                          to={`/albums/${album.id}/figurinhas`}
-                        >
-                          Selecionar
+                    
+                    <CardFooter>
+                      <Button 
+                        className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white shadow-sm" 
+                        asChild
+                      >
+                        <Link to={`/albums/${album.id}/figurinhas`}>
+                          Selecionar Álbum
                         </Link>
                       </Button>
                     </CardFooter>
