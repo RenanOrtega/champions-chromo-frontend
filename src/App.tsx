@@ -10,6 +10,8 @@
   import PixPage from "./pages/PixPage";
   import SuccessPage from "./pages/SuccessPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import PaymentSuccessPage from "./pages/PaymentSuccessPage";
+import StripeCheckoutPage from "./pages/StripeCheckoutPage";
 
   function App() {
     return (
@@ -21,9 +23,11 @@ import NotFoundPage from "./pages/NotFoundPage";
             <Route path="schools/:schoolId/albums" element={<AlbumPage />} />
             <Route path="albums/:albumId/figurinhas" element={<StickersPage />} />
             <Route path="cart" element={<CartPage />} />
-            <Route path="checkout" element={<CheckoutPage />} />
-            <Route path="checkout/pix" element={<PixPage />} />
+            {/* <Route path="checkout" element={<CheckoutPage />} />
+            <Route path="checkout/pix" element={<PixPage />} /> */}
+            <Route path="checkout" element={<StripeCheckoutPage />} />
             <Route path="success" element={<SuccessPage />} />
+            <Route path="/payment-success" element={<PaymentSuccessPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes> 

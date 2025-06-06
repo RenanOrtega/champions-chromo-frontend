@@ -1,4 +1,5 @@
 import { Address, Customer, Payment } from ".."
+import { CartItem } from "../cart"
 
 export interface GeneratePixQrCode {
   amount: number,
@@ -31,6 +32,21 @@ export interface CreateOrder {
   customer: Customer,
   expiresIn: number,
   description: string
+}
+
+export interface CreateIntentPaymentRequest {
+  amount: number,
+  currency: string,
+  items: CartItem[]
+}
+
+export interface CreateIntentPaymentResponse {
+  clientSecret: string
+}
+
+export interface PaymentDetailsResponse {
+  id: string
+  amount: number
 }
 
 export type PixStatus = "PENDING" | "PAID" | "CANCELED";

@@ -4,8 +4,7 @@ import {
   ArrowLeft,
   X,
   Minus,
-  Plus,
-} from 'lucide-react';
+  Plus} from 'lucide-react';
 import OrderSummary from '../components/OrderSummary';
 import { useCart } from '@/context/CartContext';
 import { stickerTypeInfo } from '@/types/album';
@@ -25,6 +24,14 @@ const CartPage = () => {
   calculateOrderTotals(shippingCost);
 
   const handleFinishOrder = () => {
+    // Validação antes de ir para o checkout
+    const totals = calculateOrderTotals(shippingCost);
+    
+    if (totals.finalTotal < 0.50) {
+      alert('Valor mínimo para checkout é R$ 0,50');
+      return;
+    }
+    
     navigate("/checkout");
   };
 

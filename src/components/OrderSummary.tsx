@@ -1,7 +1,7 @@
 import { useCart } from "@/context/CartContext"
 import { CouponInput } from "./CouponInput";
 import { stickerTypeInfo } from "@/types/album";
-import { AlertCircle, Tag } from "lucide-react";
+import { AlertCircle, CreditCard, Tag } from "lucide-react";
 
 const OrderSummary = ({
     shippingCost = 10.00,
@@ -104,9 +104,10 @@ const OrderSummary = ({
             {showFinishButton && (
                 <button
                     onClick={onFinishOrder}
-                    className="w-full py-3 bg-primary-600 text-white rounded-md hover:bg-primary-700 mt-4 cursor-pointer"
+                    className="w-full bg-primary-600 text-white py-3 px-4 rounded-md hover:bg-primary-700 font-medium flex items-center justify-center gap-2"
                 >
-                    Finalizar compra
+                    <CreditCard className="h-4 w-4" />
+                    Finalizar Pedido
                 </button>
             )}
         </div>
