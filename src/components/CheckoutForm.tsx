@@ -10,7 +10,7 @@ const CheckoutForm = () => {
     const stripe = useStripe();
     const elements = useElements();
     const navigate = useNavigate();
-    const { cleanCart } = useCart();
+    const { clearCart } = useCart();
 
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState<string>('');
@@ -49,7 +49,7 @@ const CheckoutForm = () => {
             }
         } else {
             // Pagamento bem-sucedido
-            cleanCart();
+            clearCart();
             navigate('/payment-success');
         }
 

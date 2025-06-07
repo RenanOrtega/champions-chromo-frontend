@@ -32,7 +32,7 @@ const CartPage = () => {
       return;
     }
     
-    navigate("/checkout");
+    navigate("/order");
   };
 
   if (itens.length === 0) {

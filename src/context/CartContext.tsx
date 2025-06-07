@@ -16,7 +16,7 @@ interface CartContextType {
   itens: CartItem[];
   addToCart: (album: Album, stickers: Sticker[]) => void;
   removeFromCart: (albumId: string) => void;
-  cleanCart: () => void;
+  clearCart: () => void;
   increaseQuantity: (albumId: string, stickerId: string) => void;
   decreaseQuantity: (albumId: string, stickerId: string) => void;
   removeSticker: (albumId: string, stickerId: string) => void;
@@ -125,7 +125,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addToCart = (album: Album, stickers: Sticker[]) => {
-    console.log('Adding stickers to cart:', stickers.map(s => s.id));
+    console.log('Adding stickers to cart:', stickers);
 
     setItens(prevItens => {
       // Create a copy of the current items
@@ -273,7 +273,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     setItens(itens.filter(item => item.album.id !== albumId));
   };
 
-  const cleanCart = () => {
+  const clearCart = () => {
     setItens([]);
     setAppliedCoupon(null);
   };
@@ -376,7 +376,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         itens,
         addToCart,
         removeFromCart,
-        cleanCart,
+        clearCart,
         increaseQuantity,
         decreaseQuantity,
         removeSticker,

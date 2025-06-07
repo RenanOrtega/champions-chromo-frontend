@@ -72,7 +72,7 @@ const StatusBadge = ({ status }: { status: PixStatus | null }) => {
 };
 
 const PixPage = () => {
-  const { cleanCart } = useCart();
+  const { clearCart } = useCart();
   const location = useLocation();
   const navigate = useNavigate();
   const { formData, totalAmount } = location.state as LocationState || {};
@@ -189,7 +189,7 @@ const PixPage = () => {
           }
 
           if (response.status === "PAID") {
-            cleanCart();
+            clearCart();
             setTimeout(() => {
               navigate('/success')
             }, 1000);
@@ -210,7 +210,7 @@ const PixPage = () => {
     return () => {
       clearInterval(interval);
     };
-  }, [pixData, cleanCart]);
+  }, [pixData, clearCart]);
 
   useEffect(() => {
     return () => {
