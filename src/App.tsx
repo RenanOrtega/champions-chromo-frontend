@@ -6,12 +6,7 @@
   import StickersPage from "./pages/StickersPage";
   import { CartProvider } from "./context/CartContext";
   import CartPage from "./pages/CartPage";
-  import CheckoutPage from "./pages/CheckoutPage";
-  import PixPage from "./pages/PixPage";
-  import SuccessPage from "./pages/SuccessPage";
 import NotFoundPage from "./pages/NotFoundPage";
-import PaymentSuccessPage from "./pages/PaymentSuccessPage";
-import StripeCheckoutPage from "./pages/StripeCheckoutPage";
 import OrderPage from "./pages/OrderPage";
 
   function App() {
