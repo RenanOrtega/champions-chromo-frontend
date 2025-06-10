@@ -4,7 +4,7 @@ import { stickerTypeInfo } from "@/types/album";
 import { AlertCircle, CreditCard, Tag } from "lucide-react";
 
 const OrderSummary = ({
-    shippingCost = 10.00,
+    shippingCost = 0,
     showCouponInput = true,
     showFinishButton = false,
     onFinishOrder,

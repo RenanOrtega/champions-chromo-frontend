@@ -20,7 +20,7 @@ const CartPage = () => {
     calculateOrderTotals
   } = useCart();
 
-  const shippingCost = 10.00;
+  const shippingCost = 0;
   calculateOrderTotals(shippingCost);
 
   const handleFinishOrder = () => {

@@ -16,11 +16,10 @@ const CheckoutPage = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string>('');
 
-    const shippingCost = 10.00;
+    const shippingCost = 0;
     const totals = calculateOrderTotals(shippingCost);
 
     useEffect(() => {
-        // Criar Payment Intent no backend
         createPaymentIntent();
     }, [totals.finalTotal]);
 

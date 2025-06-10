@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 const HomePage = () => {
   return (
     <div className="flex flex-col space-y-10 py-4">
-      <section className="bg-primary-300 rounded-lg p-6 md:p-10 text-white relative overflow-hidden">
+      <section className="bg-primary-500 rounded-lg p-6 md:p-10 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-cover bg-center opacity-2" 
              style={{ backgroundImage: "url('/logo.png')" }}></div>
         <div className="relative z-10">
@@ -11,11 +11,11 @@ const HomePage = () => {
             Quer completar seu álbum de figurinhas?
           </h1>
           <p className="text-lg mb-6">
-            Ainda não completou seu álbum, sem problemas, só fazer seu pedido!
+            Sem problemas, só fazer seu pedido!
           </p>
           <Link
             to="/schools"
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-xs bg-secondary-300 text-white hover:bg-secondary-400 transition-colors"
+            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-xs bg-secondary-400 text-white hover:bg-secondary-500 transition-colors"
           >
             Pedidos Aqui!
           </Link>

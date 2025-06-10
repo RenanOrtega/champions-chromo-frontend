@@ -75,7 +75,7 @@ const OrderPage = () => {
                     <div className="p-4 bg-yellow-100 border border-yellow-300 rounded">
                         <p className="font-medium text-yellow-800"> ⚠️ Estamos trabalhando para integrar um gateway de pagamento pelo site!</p>
                         <p className="text-sm text-yellow-700 mt-1">
-                            Por enquanto, estamos trabalhando com uma forma paleativa através do whatsapp para não perdemos os pedidos!
+                            Por enquanto, estamos trabalhando com uma forma paliativo através do whatsapp para não perdemos os pedidos!
                         </p>
                     </div>
                     <div className="p-4 bg-blue-50 border border-blue-200 rounded">
