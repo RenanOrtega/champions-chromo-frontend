@@ -11,13 +11,13 @@ const HomePage = () => {
             Álbuns de Figurinhas Personalizados para sua Escola
           </h1>
           <p className="text-lg mb-6">
-            Eternize as memórias escolares dos seus filhos com nossos álbuns de figurinhas personalizados.
+            Quer completar seu álbum de figurinhas?
           </p>
           <Link
             to="/schools"
             className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-xs bg-secondary-300 text-white hover:bg-secondary-400 transition-colors"
           >
-            Começar agora
+            Pedidos Aqui!
           </Link>
         </div>
       </section>

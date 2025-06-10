@@ -137,7 +137,6 @@ const AlbumPage = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
               {albums.map((album) => {
-                const releaseYear = new Date(album.releaseDate).getFullYear();
                 const hasImageError = imageErrors.has(album.id);
 
                 return (
@@ -163,18 +162,7 @@ const AlbumPage = () => {
                           <AlbumIcon className="h-16 w-16 mb-2" />
                           <span className="text-xs text-center px-2">Sem imagem de capa</span>
                         </div>
-                      )}
-                      
-                      {/* Badge de ano no canto superior direito */}
-                      {
-                        releaseYear === 0 ? null : (
-                          <div className="absolute top-3 right-3">
-                            <Badge variant="secondary" className="bg-white/90 text-gray-700 shadow-sm">
-                              {releaseYear}
-                            </Badge>
-                          </div>
-                        ) 
-                      }
+                      )} 
                     </CardHeader>
                     
                     <CardContent>
