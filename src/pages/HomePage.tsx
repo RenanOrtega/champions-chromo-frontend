@@ -8,10 +8,10 @@ const HomePage = () => {
              style={{ backgroundImage: "url('/logo.png')" }}></div>
         <div className="relative z-10">
           <h1 className="text-3xl md:text-4xl font-bold mb-4">
-            Álbuns de Figurinhas Personalizados
+            Quer completar seu álbum de figurinhas?
           </h1>
           <p className="text-lg mb-6">
-            Quer completar seu álbum de figurinhas?
+            Ainda não completou seu álbum, sem problemas, só fazer seu pedido!
           </p>
           <Link
             to="/schools"
