@@ -299,9 +299,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const calculateOrderTotals = (shippingCost: number = 0) => {
     const subtotal = calcTotal();
 
-    console.log("SubTotal:", subtotal);
-    console.log("Cupom:", appliedCoupon);
-
     if (!appliedCoupon) {
       const finalTotal = subtotal + shippingCost;
       setTotalValue(finalTotal);
@@ -332,20 +329,19 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         shippingDiscount: 0
       };
     }
-
     // Calcular desconto baseado no tipo
-    switch (coupon.type.toString()) {
-      case "Percent": // CouponType.Percent
+    switch (coupon.type.toString().toLowerCase()) {
+      case "percent": // CouponType.Percent
         discount = (subtotal * coupon.value) / 100;
         discountType = `${coupon.value}% de desconto`;
         break;
 
-      case "Fixed": // CouponType.Fixed
+      case "fixed": // CouponType.Fixed
         discount = Math.min(coupon.value, subtotal);
         discountType = `R$ ${coupon.value.toFixed(2)} de desconto`;
         break;
 
-      case "FreeShipping": // CouponType.FreeShipping
+      case "freeShipping": // CouponType.FreeShipping
         shippingDiscount = shippingCost;
         discountType = 'Frete grátis';
         break;
