@@ -6,10 +6,10 @@ import { fetchAlbumById } from '../clients/album';
 import { Album, Sticker } from '../types/album';
 import { useSchoolBanner } from '@/context/BannerContext';
 
-const stickerTypeInfo = {
-  'common': { name: 'Comum', price: 1 },
-  'legend': { name: 'Legend', price: 5 },
-  'a4': { name: 'A4', price: 15 }
+const defaultStickerPrices = {
+  'common': 1,
+  'legend': 5,
+  'a4': 15
 };
 
 interface StickerSelection {
@@ -58,6 +58,29 @@ const StickersPage = () => {
   const { banner } = useSchoolBanner();
 
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // Função para obter preços do álbum ou usar valores padrão
+  const getStickerPrices = () => {
+    if (!album) return defaultStickerPrices;
+
+    console.log(album.commonPrice);
+
+    return {
+      common: album.commonPrice == 0 ? defaultStickerPrices.common : album.commonPrice,
+      legend: album.legendPrice == 0 ? defaultStickerPrices.legend : album.legendPrice,
+      a4: album.a4Price == 0 ? defaultStickerPrices.a4 : album.a4Price
+    };
+  };
+
+  // Função para obter informações dos tipos de sticker com preços dinâmicos
+  const getStickerTypeInfo = () => {
+    const prices = getStickerPrices();
+    return {
+      'common': { name: 'Comum', price: prices.common },
+      'legend': { name: 'Legend', price: prices.legend },
+      'a4': { name: 'A4', price: prices.a4 }
+    };
+  };
 
   useEffect(() => {
     const getAlbumAndStickers = async () => {
@@ -152,6 +175,7 @@ const StickersPage = () => {
   const handleAddToCart = () => {
     if (!album || selectedStickers.length === 0) return;
 
+    const stickerTypeInfo = getStickerTypeInfo();
     // Converter seleções para formato de stickers para o carrinho
     const cartStickers: Sticker[] = [];
 
@@ -209,6 +233,8 @@ const StickersPage = () => {
 
   const getTotalPrice = () => {
     if (!album) return 0;
+
+    const stickerTypeInfo = getStickerTypeInfo();
 
     return selectedStickers.reduce((total, selection) => {
       let selectionTotal = 0;
@@ -322,7 +348,7 @@ const StickersPage = () => {
               </div>
             )}
 
-            {/* Tabela de preços - mostra apenas tipos disponíveis */}
+            {/* Tabela de preços - mostra apenas tipos disponíveis com preços dinâmicos */}
             {album && (
               <div className="bg-white border border-gray-200 rounded-lg p-4">
                 <h3 className="font-semibold mb-3">Preços por tipo:</h3>
@@ -332,19 +358,19 @@ const StickersPage = () => {
                   {album.hasCommon && (
                     <div className="bg-gray-100 p-3 rounded-lg">
                       <p className="text-sm font-medium">Comum</p>
-                      <p className="text-lg font-bold text-gray-700">R$ {stickerTypeInfo.common.price.toFixed(2)}</p>
+                      <p className="text-lg font-bold text-gray-700">R$ {getStickerPrices().common.toFixed(2)}</p>
                     </div>
                   )}
                   {album.hasLegend && (
                     <div className="bg-purple-100 p-3 rounded-lg">
                       <p className="text-sm font-medium">Legend</p>
-                      <p className="text-lg font-bold text-purple-700">R$ {stickerTypeInfo.legend.price.toFixed(2)}</p>
+                      <p className="text-lg font-bold text-purple-700">R$ {getStickerPrices().legend.toFixed(2)}</p>
                     </div>
                   )}
                   {album.hasA4 && (
                     <div className="bg-blue-100 p-3 rounded-lg">
                       <p className="text-sm font-medium">A4</p>
-                      <p className="text-lg font-bold text-blue-700">R$ {stickerTypeInfo.a4.price.toFixed(2)}</p>
+                      <p className="text-lg font-bold text-blue-700">R$ {getStickerPrices().a4.toFixed(2)}</p>
                     </div>
                   )}
                 </div>
@@ -416,7 +442,7 @@ const StickersPage = () => {
           </>
         )}
 
-        {/* Modal para seleção de tipos - mostra apenas tipos disponíveis */}
+        {/* Modal para seleção de tipos - mostra apenas tipos disponíveis com preços dinâmicos */}
         {showModal && currentSticker && album && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg max-w-md w-full p-6">
@@ -431,7 +457,7 @@ const StickersPage = () => {
               </div>
 
               <div className="space-y-4">
-                {Object.entries(stickerTypeInfo)
+                {Object.entries(getStickerTypeInfo())
                   .filter(([type]) => {
                     if (type === 'common') return album.hasCommon;
                     if (type === 'legend') return album.hasLegend;
@@ -471,9 +497,9 @@ const StickersPage = () => {
                   <span className="font-medium">Total:</span>
                   <span className="font-bold text-lg">
                     R$ {(
-                      (album.hasCommon ? modalQuantities.common * stickerTypeInfo.common.price : 0) +
-                      (album.hasLegend ? modalQuantities.legend * stickerTypeInfo.legend.price : 0) +
-                      (album.hasA4 ? modalQuantities.a4 * stickerTypeInfo.a4.price : 0)
+                      (album.hasCommon ? modalQuantities.common * getStickerPrices().common : 0) +
+                      (album.hasLegend ? modalQuantities.legend * getStickerPrices().legend : 0) +
+                      (album.hasA4 ? modalQuantities.a4 * getStickerPrices().a4 : 0)
                     ).toFixed(2)}
                   </span>
                 </div>

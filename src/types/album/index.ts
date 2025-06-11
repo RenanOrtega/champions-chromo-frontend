@@ -4,6 +4,9 @@ export interface Album {
   name: string;
   releaseDate: string;
   coverImage: string;
+  commonPrice: number;
+  legendPrice: number;
+  a4Price: number;
   totalStickers: number;
   hasCommon: boolean;
   hasLegend: boolean;

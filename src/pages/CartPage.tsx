@@ -57,8 +57,7 @@ const CartPage = () => {
 
   return (
     <>
-      {banner()}
-      <div className={`mx-5 ${banner()?.props.warning ? 'mt-30' : 'mt-20'}`}>
+      <div className={`mx-5 mt-20`}>
         <div className="flex items-center space-x-2 mb-6">
           <button
             onClick={() => navigate(-1)}
