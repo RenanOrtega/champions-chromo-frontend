@@ -6,4 +6,6 @@ export interface School {
   address: string;
   city: string;
   state: string;
+  warning?: string;
+  bgWarningColor?: string;
 }

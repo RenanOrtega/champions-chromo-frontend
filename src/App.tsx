@@ -1,17 +1,19 @@
-  import { Route, Routes } from "react-router-dom";
-  import Layout from "./components/Layout";
-  import HomePage from "./pages/HomePage";
-  import SchoolsPage from "./pages/SchoolsPage";
-  import AlbumPage from "./pages/AlbumPage";
-  import StickersPage from "./pages/StickersPage";
-  import { CartProvider } from "./context/CartContext";
-  import CartPage from "./pages/CartPage";
+import { Route, Routes } from "react-router-dom";
+import Layout from "./components/Layout";
+import HomePage from "./pages/HomePage";
+import SchoolsPage from "./pages/SchoolsPage";
+import AlbumPage from "./pages/AlbumPage";
+import StickersPage from "./pages/StickersPage";
+import { CartProvider } from "./context/CartContext";
+import CartPage from "./pages/CartPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import OrderPage from "./pages/OrderPage";
+import { BannerProvider } from "./context/BannerContext";
 
-  function App() {
-    return (
-      <CartProvider>
+function App() {
+  return (
+    <CartProvider>
+      <BannerProvider>
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
@@ -27,9 +29,10 @@ import OrderPage from "./pages/OrderPage";
             <Route path="/payment-success" element={<PaymentSuccessPage />} /> */}
             <Route path="*" element={<NotFoundPage />} />
           </Route>
-        </Routes> 
-      </CartProvider> 
-    )   
-  }
+        </Routes>
+      </BannerProvider>
+    </CartProvider>
+  )
+}
 
-  export default App;
+export default App;

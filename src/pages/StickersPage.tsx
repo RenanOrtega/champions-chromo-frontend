@@ -4,6 +4,7 @@ import { ArrowLeft, ShoppingCart, Check, X, Plus, Minus } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { fetchAlbumById } from '../clients/album';
 import { Album, Sticker } from '../types/album';
+import { useSchoolBanner } from '@/context/BannerContext';
 
 const stickerTypeInfo = {
   'common': { name: 'Comum', price: 1 },
@@ -54,6 +55,7 @@ const StickersPage = () => {
   const [modalQuantities, setModalQuantities] = useState({ common: 0, legend: 0, a4: 0 });
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const { banner } = useSchoolBanner();
 
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -261,248 +263,251 @@ const StickersPage = () => {
   };
 
   return (
-    <div className="space-y-6 pb-24">
-      <div className="flex items-center space-x-2">
-        <button
-          onClick={() => navigate(-1)}
-          className="p-2 rounded-full hover:bg-gray-100"
-        >
-          <ArrowLeft className="h-5 w-5 cursor-pointer" />
-        </button>
-        <h1 className="md:text-2xl font-bold">
-          {album ? `Figurinhas para ${album.name}` : 'Carregando...'}
-        </h1>
-      </div>
-
-      {loading ? (
-        <div className="flex justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+    <>
+      {banner()}
+      <div className={`space-y-6 pb-24 ${banner()?.props.warning ? 'mt-30' : 'mt-20'} mx-5`}>
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => navigate(-1)}
+            className="p-2 rounded-full hover:bg-gray-100"
+          >
+            <ArrowLeft className="h-5 w-5 cursor-pointer" />
+          </button>
+          <h1 className="md:text-2xl font-bold">
+            {album ? `Figurinhas para ${album.name}` : 'Carregando...'}
+          </h1>
         </div>
-      ) : error ? (
-        <div className="text-center py-10">
-          <p className="text-red-500">{error}</p>
-          <Link to="/schools" className="mt-4 inline-block text-primary-600 hover:underline">
-            Voltar para lista de escolas
-          </Link>
-        </div>
-      ) : (
-        <>
-          {/* Feedback de sucesso */}
-          {showSuccess && (
-            <div className="fixed top-4 right-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg z-50 flex items-center">
-              <Check className="h-5 w-5 mr-2" />
-              <div>
-                <p className="font-medium">Figurinhas adicionadas ao carrinho!</p>
-              </div>
-            </div>
-          )}
 
-          {/* Informações do álbum */}
-          {album && (
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <p className="text-sm text-gray-600">
-                Total de figurinhas disponíveis: {album.totalStickers}
-              </p>
-              <div className="mt-2 flex flex-wrap gap-2">
-                <span className="text-xs text-gray-500">Tipos disponíveis:</span>
-                {album.hasCommon && (
-                  <span className="px-2 py-1 bg-gray-200 text-xs rounded-full">Comum</span>
-                )}
-                {album.hasLegend && (
-                  <span className="px-2 py-1 bg-purple-200 text-xs rounded-full">Legend</span>
-                )}
-                {album.hasA4 && (
-                  <span className="px-2 py-1 bg-blue-200 text-xs rounded-full">A4</span>
-                )}
+        {loading ? (
+          <div className="flex justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+          </div>
+        ) : error ? (
+          <div className="text-center py-10">
+            <p className="text-red-500">{error}</p>
+            <Link to="/schools" className="mt-4 inline-block text-primary-600 hover:underline">
+              Voltar para lista de escolas
+            </Link>
+          </div>
+        ) : (
+          <>
+            {/* Feedback de sucesso */}
+            {showSuccess && (
+              <div className="fixed top-4 right-4 bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded shadow-lg z-50 flex items-center">
+                <Check className="h-5 w-5 mr-2" />
+                <div>
+                  <p className="font-medium">Figurinhas adicionadas ao carrinho!</p>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Tabela de preços - mostra apenas tipos disponíveis */}
-          {album && (
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <h3 className="font-semibold mb-3">Preços por tipo:</h3>
-              <div className={`grid gap-4 text-center ${getAvailableTypes().length === 1 ? 'grid-cols-1' :
+            {/* Informações do álbum */}
+            {album && (
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <p className="text-sm text-gray-600">
+                  Total de figurinhas disponíveis: {album.totalStickers}
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <span className="text-xs text-gray-500">Tipos disponíveis:</span>
+                  {album.hasCommon && (
+                    <span className="px-2 py-1 bg-gray-200 text-xs rounded-full">Comum</span>
+                  )}
+                  {album.hasLegend && (
+                    <span className="px-2 py-1 bg-purple-200 text-xs rounded-full">Legend</span>
+                  )}
+                  {album.hasA4 && (
+                    <span className="px-2 py-1 bg-blue-200 text-xs rounded-full">A4</span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Tabela de preços - mostra apenas tipos disponíveis */}
+            {album && (
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <h3 className="font-semibold mb-3">Preços por tipo:</h3>
+                <div className={`grid gap-4 text-center ${getAvailableTypes().length === 1 ? 'grid-cols-1' :
                   getAvailableTypes().length === 2 ? 'grid-cols-2' : 'grid-cols-3'
-                }`}>
-                {album.hasCommon && (
-                  <div className="bg-gray-100 p-3 rounded-lg">
-                    <p className="text-sm font-medium">Comum</p>
-                    <p className="text-lg font-bold text-gray-700">R$ {stickerTypeInfo.common.price.toFixed(2)}</p>
-                  </div>
-                )}
-                {album.hasLegend && (
-                  <div className="bg-purple-100 p-3 rounded-lg">
-                    <p className="text-sm font-medium">Legend</p>
-                    <p className="text-lg font-bold text-purple-700">R$ {stickerTypeInfo.legend.price.toFixed(2)}</p>
-                  </div>
-                )}
-                {album.hasA4 && (
-                  <div className="bg-blue-100 p-3 rounded-lg">
-                    <p className="text-sm font-medium">A4</p>
-                    <p className="text-lg font-bold text-blue-700">R$ {stickerTypeInfo.a4.price.toFixed(2)}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Lista de figurinhas selecionadas */}
-          {selectedStickers.length > 0 && (
-            <div className="bg-white border border-gray-200 rounded-lg p-4">
-              <h3 className="font-semibold mb-3">Figurinhas selecionadas:</h3>
-              <div className="space-y-2">
-                {selectedStickers.map((selection) => (
-                  <div key={selection.stickerId} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
-                    <div>
-                      <p className="font-medium">Figurinha {selection.stickerNumber}</p>
-                      <p className="text-sm text-gray-600">
-                        {formatSelectedStickerText(selection)}
-                      </p>
+                  }`}>
+                  {album.hasCommon && (
+                    <div className="bg-gray-100 p-3 rounded-lg">
+                      <p className="text-sm font-medium">Comum</p>
+                      <p className="text-lg font-bold text-gray-700">R$ {stickerTypeInfo.common.price.toFixed(2)}</p>
                     </div>
-                    <button
-                      onClick={() => removeFromSelection(selection.stickerId)}
-                      className="text-red-500 hover:text-red-700 p-1"
+                  )}
+                  {album.hasLegend && (
+                    <div className="bg-purple-100 p-3 rounded-lg">
+                      <p className="text-sm font-medium">Legend</p>
+                      <p className="text-lg font-bold text-purple-700">R$ {stickerTypeInfo.legend.price.toFixed(2)}</p>
+                    </div>
+                  )}
+                  {album.hasA4 && (
+                    <div className="bg-blue-100 p-3 rounded-lg">
+                      <p className="text-sm font-medium">A4</p>
+                      <p className="text-lg font-bold text-blue-700">R$ {stickerTypeInfo.a4.price.toFixed(2)}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Lista de figurinhas selecionadas */}
+            {selectedStickers.length > 0 && (
+              <div className="bg-white border border-gray-200 rounded-lg p-4">
+                <h3 className="font-semibold mb-3">Figurinhas selecionadas:</h3>
+                <div className="space-y-2">
+                  {selectedStickers.map((selection) => (
+                    <div key={selection.stickerId} className="flex justify-between items-center bg-gray-50 p-3 rounded-lg">
+                      <div>
+                        <p className="font-medium">Figurinha {selection.stickerNumber}</p>
+                        <p className="text-sm text-gray-600">
+                          {formatSelectedStickerText(selection)}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => removeFromSelection(selection.stickerId)}
+                        className="text-red-500 hover:text-red-700 p-1"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {stickers.length === 0 ? (
+              <div className="text-center py-10">
+                <p className="text-gray-500">Nenhuma figurinha disponível para este álbum.</p>
+                <Link to="/schools" className="mt-4 inline-block text-primary-600 hover:underline">
+                  Voltar para lista de escolas
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
+                {stickers.map((sticker) => {
+                  const selected = isSelected(sticker.id);
+
+                  return (
+                    <div
+                      key={sticker.id}
+                      className={`cursor-pointer relative bg-white rounded-lg shadow-sm overflow-hidden border-2 ${selected ? 'border-primary-500' : 'border-gray-200'} hover:border-primary-300 transition-colors`}
+                      onClick={() => handleStickerClick(sticker)}
                     >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                ))}
+                      {selected && (
+                        <div className="absolute top-1 right-1 bg-primary-500 rounded-full p-1">
+                          <Check className="h-3 w-3 text-white" />
+                        </div>
+                      )}
+                      <div className="h-20 bg-gray-100 flex items-center justify-center">
+                        <div className="w-14 h-18 bg-white border border-gray-300 flex items-center justify-center rounded">
+                          <p className="text-sm font-medium text-gray-700">{sticker.number}</p>
+                        </div>
+                      </div>
+                      <div className="p-2">
+                        <p className="text-xs text-gray-700 truncate" title={sticker.name}>{sticker.name}</p>
+                        <p className="text-xs text-gray-500 mt-1">Clique para escolher tipo</p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-            </div>
-          )}
+            )}
+          </>
+        )}
 
-          {stickers.length === 0 ? (
-            <div className="text-center py-10">
-              <p className="text-gray-500">Nenhuma figurinha disponível para este álbum.</p>
-              <Link to="/schools" className="mt-4 inline-block text-primary-600 hover:underline">
-                Voltar para lista de escolas
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3">
-              {stickers.map((sticker) => {
-                const selected = isSelected(sticker.id);
-
-                return (
-                  <div
-                    key={sticker.id}
-                    className={`cursor-pointer relative bg-white rounded-lg shadow-sm overflow-hidden border-2 ${selected ? 'border-primary-500' : 'border-gray-200'} hover:border-primary-300 transition-colors`}
-                    onClick={() => handleStickerClick(sticker)}
-                  >
-                    {selected && (
-                      <div className="absolute top-1 right-1 bg-primary-500 rounded-full p-1">
-                        <Check className="h-3 w-3 text-white" />
-                      </div>
-                    )}
-                    <div className="h-20 bg-gray-100 flex items-center justify-center">
-                      <div className="w-14 h-18 bg-white border border-gray-300 flex items-center justify-center rounded">
-                        <p className="text-sm font-medium text-gray-700">{sticker.number}</p>
-                      </div>
-                    </div>
-                    <div className="p-2">
-                      <p className="text-xs text-gray-700 truncate" title={sticker.name}>{sticker.name}</p>
-                      <p className="text-xs text-gray-500 mt-1">Clique para escolher tipo</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Modal para seleção de tipos - mostra apenas tipos disponíveis */}
-      {showModal && currentSticker && album && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-md w-full p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">Figurinha {currentSticker.number}</h3>
-              <button
-                onClick={() => setShowModal(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              {Object.entries(stickerTypeInfo)
-                .filter(([type]) => {
-                  if (type === 'common') return album.hasCommon;
-                  if (type === 'legend') return album.hasLegend;
-                  if (type === 'a4') return album.hasA4;
-                  return false;
-                })
-                .map(([type, info]) => (
-                  <div key={type} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                    <div>
-                      <p className="font-medium">{info.name}</p>
-                      <p className="text-sm text-gray-600">R$ {info.price.toFixed(2)} cada</p>
-                    </div>
-                    <div className="flex items-center space-x-3">
-                      <button
-                        onClick={() => updateQuantity(type as 'common' | 'legend' | 'a4', false)}
-                        className="p-1 rounded-full hover:bg-gray-100"
-                        disabled={modalQuantities[type as 'common' | 'legend' | 'a4'] === 0}
-                      >
-                        <Minus className="h-4 w-4" />
-                      </button>
-                      <span className="w-8 text-center font-medium">
-                        {modalQuantities[type as 'common' | 'legend' | 'a4']}
-                      </span>
-                      <button
-                        onClick={() => updateQuantity(type as 'common' | 'legend' | 'a4', true)}
-                        className="p-1 rounded-full hover:bg-gray-100"
-                      >
-                        <Plus className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-            </div>
-
-            <div className="mt-6 pt-4 border-t border-gray-200">
+        {/* Modal para seleção de tipos - mostra apenas tipos disponíveis */}
+        {showModal && currentSticker && album && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full p-6">
               <div className="flex justify-between items-center mb-4">
-                <span className="font-medium">Total:</span>
-                <span className="font-bold text-lg">
-                  R$ {(
-                    (album.hasCommon ? modalQuantities.common * stickerTypeInfo.common.price : 0) +
-                    (album.hasLegend ? modalQuantities.legend * stickerTypeInfo.legend.price : 0) +
-                    (album.hasA4 ? modalQuantities.a4 * stickerTypeInfo.a4.price : 0)
-                  ).toFixed(2)}
-                </span>
+                <h3 className="text-lg font-semibold">Figurinha {currentSticker.number}</h3>
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {Object.entries(stickerTypeInfo)
+                  .filter(([type]) => {
+                    if (type === 'common') return album.hasCommon;
+                    if (type === 'legend') return album.hasLegend;
+                    if (type === 'a4') return album.hasA4;
+                    return false;
+                  })
+                  .map(([type, info]) => (
+                    <div key={type} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
+                      <div>
+                        <p className="font-medium">{info.name}</p>
+                        <p className="text-sm text-gray-600">R$ {info.price.toFixed(2)} cada</p>
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <button
+                          onClick={() => updateQuantity(type as 'common' | 'legend' | 'a4', false)}
+                          className="p-1 rounded-full hover:bg-gray-100"
+                          disabled={modalQuantities[type as 'common' | 'legend' | 'a4'] === 0}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </button>
+                        <span className="w-8 text-center font-medium">
+                          {modalQuantities[type as 'common' | 'legend' | 'a4']}
+                        </span>
+                        <button
+                          onClick={() => updateQuantity(type as 'common' | 'legend' | 'a4', true)}
+                          className="p-1 rounded-full hover:bg-gray-100"
+                        >
+                          <Plus className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <div className="flex justify-between items-center mb-4">
+                  <span className="font-medium">Total:</span>
+                  <span className="font-bold text-lg">
+                    R$ {(
+                      (album.hasCommon ? modalQuantities.common * stickerTypeInfo.common.price : 0) +
+                      (album.hasLegend ? modalQuantities.legend * stickerTypeInfo.legend.price : 0) +
+                      (album.hasA4 ? modalQuantities.a4 * stickerTypeInfo.a4.price : 0)
+                    ).toFixed(2)}
+                  </span>
+                </div>
+                <button
+                  onClick={handleAddToSelection}
+                  disabled={modalQuantities.common + modalQuantities.legend + modalQuantities.a4 === 0}
+                  className="w-full bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                >
+                  Adicionar à seleção
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {selectedStickers.length > 0 && (
+          <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 p-4">
+            <div className="container mx-auto flex justify-between items-center">
+              <div>
+                <p className="text-sm text-gray-600">{getTotalItems()} figurinhas selecionadas</p>
+                <p className="font-semibold">Total: R$ {getTotalPrice().toFixed(2)}</p>
               </div>
               <button
-                onClick={handleAddToSelection}
-                disabled={modalQuantities.common + modalQuantities.legend + modalQuantities.a4 === 0}
-                className="w-full bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                onClick={handleAddToCart}
+                className="flex items-center space-x-2 bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 cursor-pointer transition-all duration-200"
               >
-                Adicionar à seleção
+                <ShoppingCart className="h-5 w-5" />
+                <span>Adicionar ao carrinho</span>
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {selectedStickers.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white shadow-lg border-t border-gray-200 p-4">
-          <div className="container mx-auto flex justify-between items-center">
-            <div>
-              <p className="text-sm text-gray-600">{getTotalItems()} figurinhas selecionadas</p>
-              <p className="font-semibold">Total: R$ {getTotalPrice().toFixed(2)}</p>
-            </div>
-            <button
-              onClick={handleAddToCart}
-              className="flex items-center space-x-2 bg-primary-600 text-white py-2 px-4 rounded-md hover:bg-primary-700 cursor-pointer transition-all duration-200"
-            >
-              <ShoppingCart className="h-5 w-5" />
-              <span>Adicionar ao carrinho</span>
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </>
   );
 };
 

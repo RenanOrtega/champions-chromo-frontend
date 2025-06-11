@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 
 const HomePage = () => {
   return (
-    <div className="flex flex-col space-y-10 py-4">
+    <div className="flex flex-col space-y-10 py-4 mx-5 mt-15">
       <section className="bg-primary-500 rounded-lg p-6 md:p-10 text-white relative overflow-hidden">
         <div className="absolute inset-0 bg-cover bg-center opacity-2" 
              style={{ backgroundImage: "url('/logo.png')" }}></div>
