@@ -8,4 +8,5 @@ export interface School {
   state: string;
   warning?: string;
   bgWarningColor?: string;
+  imageUrl?: string;
 }

@@ -94,14 +94,21 @@ const SchoolsPage = () => {
                 >
                   <Card className="hover:shadow-md border-2 hover:border-primary-200">
                     <CardHeader className="h-40 flex items-center justify-center bg-muted">
-                      <SchoolIcon size={64} className="text-muted-foreground" />
+                      {school.imageUrl ? (
+                        <img
+                          src={school.imageUrl}
+                          alt={school.name}
+                          className="w-45 h-45 object-cover"
+                          loading="lazy"
+                        />
+                      ) : (<SchoolIcon size={64} className="text-muted-foreground" />)}
                     </CardHeader>
                     <CardContent className=" bg-white">
                       <h3 className="font-bold text-lg mb-1">{school.name}</h3>
                       <p className="text-muted-foreground">{school.city}, {school.state}</p>
                       <p className="text-muted-foreground text-sm mt-2">{school.phone}</p>
                     </CardContent>
-                  </Card>
+                  </Card>'
                 </Link>
               ))}
             </div>
