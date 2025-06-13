@@ -1,6 +1,23 @@
 export interface OrderSummary {
     albums: AlbumOrder[]
+    customer: Customer
     priceTotal: number
+}
+
+export type Customer = {
+    name: string
+    email: string
+    address: CustomerAddress
+}
+
+export type CustomerAddress = {
+    street: string
+    number: string
+    neighborhood: string
+    postalCode: string
+    complement: string
+    city: string
+    state: string
 }
 
 export interface AlbumOrder {
