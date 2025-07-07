@@ -23,6 +23,7 @@ export type CustomerAddress = {
 export interface AlbumOrder {
     albumId: string
     schoolId: string
+    albumName: string
     stickers: OrderStickers[]
 }
 

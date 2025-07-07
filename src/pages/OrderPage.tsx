@@ -91,6 +91,7 @@ const OrderPage = () => {
                 albums: itens.map(item => ({
                     albumId: item.album.id,
                     schoolId: item.album.schoolId,
+                    albumName: item.album.name,
                     stickers: item.stickers.map(sticker => ({
                         type: sticker.type,
                         number: sticker.number,
