@@ -22,11 +22,6 @@ function App() {
             <Route path="albums/:albumId/figurinhas" element={<StickersPage />} />
             <Route path="cart" element={<CartPage />} />
             <Route path="order" element={<OrderPage />} />
-            {/* <Route path="checkout" element={<CheckoutPage />} />
-            <Route path="checkout/pix" element={<PixPage />} /> */}
-            {/* <Route path="checkout" element={<StripeCheckoutPage />} />
-            <Route path="success" element={<SuccessPage />} />
-            <Route path="/payment-success" element={<PaymentSuccessPage />} /> */}
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>

@@ -16,12 +16,6 @@ export enum CouponType {
     FreeShipping = 2
 }
 
-export interface CouponState {
-    coupon: Coupon | null;
-    loading: boolean;
-    error: string | null;
-}
-
 export interface CouponValidateResponse {
     coupon: Coupon | null;
     message: string;
