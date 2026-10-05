@@ -37,7 +37,6 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [totalValue, setTotalValue] = useState<number>(0);
 
   // Load items from localStorage when component mounts
   const [itens, setItens] = useState<CartItem[]>(() => {
@@ -125,7 +124,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const addToCart = (album: Album, stickers: Sticker[]) => {
-    console.log('Adding stickers to cart:', stickers);
 
     setItens(prevItens => {
       // Create a copy of the current items
@@ -301,7 +299,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
     if (!appliedCoupon) {
       const finalTotal = subtotal + shippingCost;
-      setTotalValue(finalTotal);
 
       return {
         subtotal,
@@ -320,7 +317,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     // Verificar valor mínimo
     if (subtotal < coupon.minPurchaseValue) {
       const finalTotal = subtotal + shippingCost;
-      setTotalValue(finalTotal);
       return {
         subtotal,
         discount: 0,
@@ -347,11 +343,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         break;
     }
 
-    console.log("Discount:", discount);
-    console.log("DiscountType:", discountType);
 
     const finalTotal = subtotal - discount + shippingCost - shippingDiscount;
-    setTotalValue(finalTotal);
 
     return {
       subtotal,
@@ -363,7 +356,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const finalTotal = () => {
-    return totalValue;
+    return calculateOrderTotals(0).finalTotal;
   }
 
   return (

@@ -16,7 +16,6 @@
   --color-primary-700: #08628D;
   --color-primary-800: #05415E;
   --color-primary-900: #032130;
-  --color-primary: #33C3F0;
 
   --color-secondary-50: #FEF2EA;
   --color-secondary-100: #FDE0D0;
@@ -28,11 +27,10 @@
   --color-secondary-700: #7A2F01;
   --color-secondary-800: #461B00;
   --color-secondary-900: #190A00;
-  --color-secondary: #F97316;
 
   --color-tertiary: #E11D48;
 
-  --font-sans: Inter, sans-serif;
+  --font-sans: Inter, ui-sans-serif, system-ui, sans-serif;
 }
 
 /*
@@ -50,15 +48,6 @@
   ::backdrop,
   ::file-selector-button {
     border-color: var(--color-gray-200, currentcolor);
-  }
-}
-
-@layer base {
-  html {
-    @apply text-slate-900 antialiased;
-  }
-  body {
-    @apply bg-slate-50 min-h-screen;
   }
 }
 
@@ -109,25 +98,25 @@
 */
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --radius: 0.375rem;
+  --background: #F3F5F7;
+  --foreground: #0F172A;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
+  --primary: #08628D;
+  --primary-foreground: #FFFFFF;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
+  --muted-foreground: #475569;
   --accent: oklch(0.97 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --input: #CBD5E1;
+  --ring: #0EA5E9;
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -189,7 +178,24 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    @apply antialiased;
+  }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground min-h-screen;
+  }
+  a:focus-visible,
+  button:focus-visible {
+    outline: 2px solid var(--color-primary-500);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }

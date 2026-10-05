@@ -1,87 +1,75 @@
 import { Link } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
+import Page from '@/components/Page'
+
+const steps = [
+  {
+    title: 'Selecione a escola',
+    description: 'Escolha a escola do seu filho para ver os álbuns disponíveis.',
+  },
+  {
+    title: 'Escolha o álbum',
+    description: 'Selecione entre os modelos disponíveis para a escola.',
+  },
+  {
+    title: 'Marque as figurinhas que faltam',
+    description: 'Toque nos números que faltam, envie o pedido e combine o pagamento pelo WhatsApp.',
+  },
+]
 
 const HomePage = () => {
   return (
-    <div className="flex flex-col space-y-10 py-4 mx-5 mt-15">
-      <section className="bg-primary-500 rounded-lg p-6 md:p-10 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-cover bg-center opacity-2" 
-             style={{ backgroundImage: "url('/logo.png')" }}></div>
-        <div className="relative z-10">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">
+    <Page className="space-y-12 sm:space-y-16">
+      <section className="grid items-center gap-8 rounded-lg bg-primary-700 px-6 py-10 text-white sm:px-10 md:grid-cols-[1fr_auto] md:py-12">
+        <div>
+          <h1 className="max-w-xl text-3xl font-bold tracking-tight text-balance md:text-4xl">
             Quer completar seu álbum de figurinhas?
           </h1>
-          <p className="text-lg mb-6">
-            Sem problemas, só fazer seu pedido!
+          <p className="mt-3 max-w-lg text-lg text-primary-100">
+            Sem problemas, é só pedir as que faltam.
           </p>
           <Link
             to="/schools"
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-xs bg-secondary-400 text-white hover:bg-secondary-500 transition-colors"
+            className="mt-7 inline-flex h-12 items-center gap-2 rounded-md bg-secondary-400 px-6 text-base font-semibold text-slate-950 transition-colors hover:bg-secondary-300"
           >
-            Pedidos Aqui!
+            Fazer meu pedido
+            <ArrowRight className="size-5" />
           </Link>
         </div>
+        <img
+          src="/logo.png"
+          alt=""
+          className="hidden w-44 md:block lg:w-52"
+        />
       </section>
 
-      <section className="py-4">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Como funciona</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="flex flex-col items-center">
-            <div className="bg-primary-100 rounded-full p-4 mb-4">
-              <svg className="w-10 h-10 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold mb-2 text-gray-800">Selecione a escola</h3>
-            <p className="text-gray-600 text-center">
-              Escolha a escola do seu filho para ver os álbuns disponíveis.
-            </p>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="bg-primary-100 rounded-full p-4 mb-4">
-              <svg className="w-10 h-10 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold mb-2 text-gray-800">Escolha o Álbum</h3>
-            <p className="text-gray-600 text-center">
-              Selecione entre os modelos disponíveis para a escola.
-            </p>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="bg-primary-100 rounded-full p-4 mb-4">
-              <svg className="w-10 h-10 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold mb-2 text-gray-800">Personalize e Compre</h3>
-            <p className="text-gray-600 text-center">
-              Selecione as figurinhas que deseja incluir e finalize o pagamento.
-            </p>
-          </div>
-        </div>
+      <section>
+        <h2 className="text-xl font-bold tracking-tight text-slate-900">Como funciona</h2>
+        <ol className="mt-6 grid gap-6 md:grid-cols-3 md:gap-8">
+          {steps.map((step, index) => (
+            <li key={step.title} className="flex gap-4 md:flex-col md:gap-3 md:border-t-2 md:border-slate-300 md:pt-4">
+              <span className="text-3xl font-bold leading-none text-secondary-500 tabular-nums">{index + 1}</span>
+              <div>
+                <h3 className="text-base font-semibold text-slate-900">{step.title}</h3>
+                <p className="mt-1 text-sm leading-relaxed text-slate-600">{step.description}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
       </section>
 
-      <section className="bg-gradient-to-br from-secondary-100 to-secondary-200 rounded-lg p-6 md:p-8">
-        <div className="flex flex-col md:flex-row items-center gap-6">
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">Lembranças que duram para sempre</h2>
-            <p className="text-gray-700 mb-4">
-              Nossos álbuns de figurinhas escolares são a maneira perfeita de preservar as memórias dos anos escolares do seu filho.
-            </p>
-            <p className="text-gray-700">
-              Com fotos de alta qualidade e design personalizado para cada escola, estes álbuns se tornarão tesouros de família.
-            </p>
-          </div>
-          <div className="flex-1 flex justify-center">
-            <img 
-              src="/logo.png" 
-              alt="Rei das Figurinhas" 
-              className="max-w-[200px] md:max-w-[250px] h-auto"
-            />
-          </div>
+      <section className="border-l-4 border-secondary-400 pl-5 sm:pl-6">
+        <h2 className="text-xl font-bold tracking-tight text-slate-900">Lembranças que duram para sempre</h2>
+        <div className="mt-3 max-w-2xl space-y-3 leading-relaxed text-slate-700">
+          <p>
+            Nossos álbuns de figurinhas escolares são a maneira perfeita de preservar as memórias dos anos escolares do seu filho.
+          </p>
+          <p>
+            Com fotos de alta qualidade e design personalizado para cada escola, estes álbuns se tornarão tesouros de família.
+          </p>
         </div>
       </section>
-    </div>
+    </Page>
   )
 }
 

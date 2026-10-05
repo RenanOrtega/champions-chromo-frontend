@@ -1,12 +1,24 @@
 import { useState } from 'react';
-import { Check, X, Ticket, Loader2 } from 'lucide-react';
+import { Check, X, Loader2 } from 'lucide-react';
 import { AxiosError } from 'axios';
 import { useCart } from '@/context/CartContext';
 import { validateCouponRequest } from '@/clients/coupon';
+import { Coupon } from '@/types/coupon';
+import { Button } from '@/components/ui/button';
+import { formatPrice } from '@/lib/format';
 
 interface CouponInputProps {
     className?: string;
 }
+
+// A API pode devolver o tipo como número (0, 1, 2) ou como texto.
+const describeCoupon = (coupon: Coupon) => {
+    const type = coupon.type.toString().toLowerCase();
+    if (type === '0' || type === 'percent') return `${coupon.value}% de desconto`;
+    if (type === '1' || type === 'fixed') return `${formatPrice(coupon.value)} de desconto`;
+    if (type === '2' || type === 'freeshipping') return 'Frete grátis';
+    return '';
+};
 
 export const CouponInput: React.FC<CouponInputProps> = ({ className = '' }) => {
     const [couponCode, setCouponCode] = useState('');
@@ -39,8 +51,8 @@ export const CouponInput: React.FC<CouponInputProps> = ({ className = '' }) => {
             setCouponError(null);
             return coupon;
         } catch (error) {
-            const errorMessage = error instanceof AxiosError ? error.response?.data?.message : 'Erro desconhecido.';
-            setCouponError(errorMessage);
+            const errorMessage = error instanceof AxiosError ? error.response?.data?.message : null;
+            setCouponError(errorMessage || 'Não foi possível validar o cupom. Tente de novo.');
             return null;
         }
     };
@@ -67,7 +79,7 @@ export const CouponInput: React.FC<CouponInputProps> = ({ className = '' }) => {
         setCouponError(null);
     };
 
-    const handleKeyPress = (e: React.KeyboardEvent) => {
+    const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === 'Enter') {
             handleApplyCoupon();
         }
@@ -75,72 +87,61 @@ export const CouponInput: React.FC<CouponInputProps> = ({ className = '' }) => {
 
     if (appliedCoupon) {
         return (
-            <div className={`bg-green-50 border border-green-200 rounded-lg p-4 ${className}`}>
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                        <div className="flex-shrink-0">
-                            <Check className="h-5 w-5 text-green-600" />
-                        </div>
-                        <div>
-                            <p className="text-sm font-medium text-green-800">
-                                Cupom aplicado: {appliedCoupon.code}
-                            </p>
-                            <p className="text-xs text-green-600">
-                                {appliedCoupon.type === 0 && `${appliedCoupon.value}% de desconto`}
-                                {appliedCoupon.type === 1 && `R$ ${appliedCoupon.value.toFixed(2)} de desconto`}
-                                {appliedCoupon.type === 2 && 'Frete grátis'}
-                            </p>
-                        </div>
+            <div className={`flex items-center justify-between gap-3 rounded-md border border-green-300 bg-green-50 px-3 py-2.5 ${className}`}>
+                <div className="flex items-center gap-2.5">
+                    <Check className="size-4 shrink-0 text-green-700" />
+                    <div>
+                        <p className="text-sm font-semibold text-green-900">
+                            Cupom {appliedCoupon.code}
+                        </p>
+                        <p className="text-sm text-green-800">
+                            {describeCoupon(appliedCoupon)}
+                        </p>
                     </div>
-                    <button
-                        onClick={handleRemoveCoupon}
-                        className="flex-shrink-0 p-1 rounded-full hover:bg-green-100 text-green-600 hover:text-green-800"
-                        title="Remover cupom"
-                    >
-                        <X className="h-4 w-4" />
-                    </button>
                 </div>
+                <button
+                    onClick={handleRemoveCoupon}
+                    className="flex size-8 shrink-0 cursor-pointer items-center justify-center rounded-md text-green-800 hover:bg-green-100"
+                    aria-label="Remover cupom"
+                >
+                    <X className="size-4" />
+                </button>
             </div>
         );
     }
 
     return (
         <div className={className}>
-            <div className="flex items-center space-x-2">
-                <div className="flex-1 relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Ticket className="h-4 w-4 text-gray-400" />
-                    </div>
-                    <input
-                        type="text"
-                        value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                        onKeyPress={handleKeyPress}
-                        placeholder="Digite seu cupom"
-                        className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md text-sm placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                        disabled={isApplying}
-                    />
-                </div>
-                <button
+            <label htmlFor="coupon" className="mb-1.5 block text-sm font-medium text-slate-700">
+                Cupom de desconto
+            </label>
+            <div className="flex items-center gap-2">
+                <input
+                    id="coupon"
+                    type="text"
+                    value={couponCode}
+                    onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                    onKeyDown={handleKeyDown}
+                    placeholder="Digite o código"
+                    aria-invalid={!!couponError}
+                    aria-describedby={couponError ? 'coupon-error' : undefined}
+                    className={`h-10 w-full min-w-0 rounded-md border bg-white px-3 text-base placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 sm:text-sm ${couponError ? 'border-red-500' : 'border-slate-300'}`}
+                    disabled={isApplying}
+                />
+                <Button
+                    variant="outline"
                     onClick={handleApplyCoupon}
                     disabled={!couponCode.trim() || isApplying}
-                    className="px-4 py-2 bg-primary-600 text-white text-sm font-medium rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                    className="h-10 shrink-0"
                 >
-                    {isApplying ? (
-                        <>
-                            <Loader2 className="h-4 w-4 animate-spin" />
-                            <span>Aplicando</span>
-                        </>
-                    ) : (
-                        <span>Aplicar</span>
-                    )}
-                </button>
+                    {isApplying && <Loader2 className="size-4 animate-spin" />}
+                    {isApplying ? 'Aplicando' : 'Aplicar'}
+                </Button>
             </div>
 
             {couponError && (
-                <p className="mt-2 text-sm text-red-600 flex items-center space-x-1">
-                    <X className="h-4 w-4" />
-                    <span>{couponError}</span>
+                <p id="coupon-error" role="alert" className="mt-1.5 text-sm text-red-700">
+                    {couponError}
                 </p>
             )}
         </div>

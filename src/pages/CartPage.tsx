@@ -1,19 +1,22 @@
-import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ShoppingBag,
-  ArrowLeft,
-  X,
+  Trash2,
   Minus,
   Plus
 } from 'lucide-react';
 import OrderSummary from '../components/OrderSummary';
 import { useCart } from '@/context/CartContext';
-import { stickerTypeInfo } from '@/types/album';
-import { useSchoolBanner } from '@/context/BannerContext';
+import { Button } from '@/components/ui/button';
+import Page from '@/components/Page';
+import StateMessage from '@/components/StateMessage';
+import TypeBadge from '@/components/TypeBadge';
+import { formatPrice, plural } from '@/lib/format';
 
 const CartPage = () => {
   const navigate = useNavigate();
-  const { banner } = useSchoolBanner();
+  const [finishError, setFinishError] = useState<string | null>(null);
   const {
     itens,
     removeFromCart,
@@ -24,14 +27,13 @@ const CartPage = () => {
   } = useCart();
 
   const shippingCost = 0;
-  calculateOrderTotals(shippingCost);
 
   const handleFinishOrder = () => {
     // Validação antes de ir para o checkout
     const totals = calculateOrderTotals(shippingCost);
 
     if (totals.finalTotal < 0.50) {
-      alert('Valor mínimo para checkout é R$ 0,50');
+      setFinishError('O valor mínimo do pedido é R$ 0,50.');
       return;
     }
 
@@ -40,126 +42,104 @@ const CartPage = () => {
 
   if (itens.length === 0) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        {banner()}
-        <ShoppingBag className="h-16 w-16 text-gray-300 mb-4" />
-        <h2 className="text-xl font-semibold text-gray-700 mb-2">Seu carrinho está vazio</h2>
-        <p className="text-gray-500 text-center mb-6">Adicione álbuns e figurinhas para continuar</p>
-        <button
-          onClick={() => navigate('/schools')}
-          className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 cursor-pointer"
+      <Page>
+        <StateMessage
+          icon={ShoppingBag}
+          title="Seu carrinho está vazio"
+          description="Escolha a escola e o álbum para marcar as figurinhas que faltam."
         >
-          Explorar escolas
-        </button>
-      </div>
+          <Button asChild size="lg">
+            <Link to="/schools">Escolher escola</Link>
+          </Button>
+        </StateMessage>
+      </Page>
     );
   }
 
   return (
-    <>
-      <div className={`mx-5 mt-20`}>
-        <div className="flex items-center space-x-2 mb-6">
-          <button
-            onClick={() => navigate(-1)}
-            className="p-2 rounded-full hover:bg-gray-100"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <h1 className="text-2xl font-bold">Carrinho</h1>
-        </div>
-
-        <div className="md:grid md:grid-cols-3 md:gap-6">
-          <div className="md:col-span-2">
-            {itens.map((item) => (
-              <div key={item.album.id} className="mb-6 bg-white rounded-lg shadow-sm p-4">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="font-semibold">{item.album.name}</h3>
-                  </div>
-                  <button
-                    onClick={() => removeFromCart(item.album.id)}
-                    className="p-1 rounded-full hover:bg-gray-100 text-gray-500"
-                  >
-                    <X className="h-5 w-5 cursor-pointer" />
-                  </button>
+    <Page showBack title="Carrinho">
+      <div className="grid items-start gap-6 lg:grid-cols-3">
+        <div className="space-y-4 lg:col-span-2">
+          {itens.map((item) => (
+            <section key={item.album.id} className="rounded-lg border border-slate-200 bg-white">
+              <div className="flex items-center justify-between gap-3 border-b border-slate-200 px-4 py-3 sm:px-5">
+                <div className="min-w-0">
+                  <h2 className="truncate font-semibold text-slate-900">{item.album.name}</h2>
+                  <p className="text-sm text-slate-600">
+                    {plural(item.stickers.reduce((sum, s) => sum + s.quantity, 0), 'figurinha', 'figurinhas')}
+                  </p>
                 </div>
-
-                {item.stickers.length > 0 && (
-                  <>
-                    <h4 className="font-medium text-sm mb-2">
-                      Figurinhas selecionadas ({item.stickers.reduce((sum, s) => sum + s.quantity, 0)})
-                    </h4>
-                    <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
-                      {item.stickers.map((sticker) => (
-                        <div key={sticker.id} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-                          <div className="flex items-center flex-1">
-                            <div className="w-10 h-10 bg-white border border-gray-200 rounded flex items-center justify-center mr-3">
-                              <span className="text-sm font-medium text-gray-700">#{sticker.number}</span>
-                            </div>
-                            <div className="flex flex-col">
-                              <span className="text-sm font-medium">{sticker.name || `Figurinha ${sticker.number}`}</span>
-                              <span className={`text-xs px-2 py-1 rounded text-white w-fit mt-1 ${sticker.type === 'common' ? 'bg-gray-500' :
-                                sticker.type === 'legend' ? 'bg-purple-500' : 'bg-blue-500'
-                                }`}>
-                                {stickerTypeInfo[sticker.type].name}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex items-center">
-                            <div className="flex items-center mr-4 bg-white rounded-lg border border-gray-200">
-                              <button
-                                onClick={() => decreaseQuantity(item.album.id, sticker.id)}
-                                className="p-2 rounded-l-lg hover:bg-gray-100 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled={sticker.quantity <= 1}
-                              >
-                                <Minus className="h-4 w-4" />
-                              </button>
-                              <span className="px-3 py-2 text-sm font-medium border-x border-gray-200 min-w-[40px] text-center">
-                                {sticker.quantity}
-                              </span>
-                              <button
-                                onClick={() => increaseQuantity(item.album.id, sticker.id)}
-                                className="p-2 rounded-r-lg hover:bg-gray-100 cursor-pointer"
-                              >
-                                <Plus className="h-4 w-4" />
-                              </button>
-                            </div>
-                            <div className="flex flex-col items-end mr-3">
-                              <span className="text-sm font-medium">
-                                R$ {(sticker.price * sticker.quantity).toFixed(2)}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                R$ {sticker.price.toFixed(2)} cada
-                              </span>
-                            </div>
-                            <button
-                              onClick={() => removeSticker(item.album.id, sticker.id)}
-                              className="p-2 rounded-full hover:bg-red-100 text-red-500 hover:text-red-700"
-                            >
-                              <X className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
+                <button
+                  onClick={() => removeFromCart(item.album.id)}
+                  className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium text-slate-600 hover:bg-red-50 hover:text-red-700"
+                >
+                  <Trash2 className="size-4" />
+                  Remover<span className="hidden sm:inline"> álbum</span>
+                </button>
               </div>
-            ))}
-          </div>
 
-          <div className="md:col-span-1">
-            <OrderSummary
-              shippingCost={shippingCost}
-              showCouponInput={true}
-              showFinishButton={true}
-              onFinishOrder={handleFinishOrder}
-              className="sticky top-4"
-            />
-          </div>
+              <ul className="divide-y divide-slate-200 px-4 sm:px-5">
+                {item.stickers.map((sticker) => (
+                  <li key={sticker.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 py-3">
+                    <div className="flex h-12 w-9 shrink-0 items-center justify-center rounded border-2 border-primary-600 bg-primary-50 text-sm font-semibold text-primary-800 tabular-nums">
+                      {sticker.number}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-slate-900">{sticker.name || `Figurinha ${sticker.number}`}</p>
+                      <div className="mt-1 flex items-center gap-2">
+                        <TypeBadge type={sticker.type} />
+                        <span className="text-xs text-slate-600 tabular-nums">{formatPrice(sticker.price)} cada</span>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => removeSticker(item.album.id, sticker.id)}
+                      aria-label={`Remover figurinha ${sticker.number}`}
+                      className="flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-md text-slate-500 hover:bg-red-50 hover:text-red-700 sm:order-last"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                    <div className="flex w-full items-center justify-between gap-4 pl-12 sm:w-auto sm:pl-0">
+                      <div className="flex items-center rounded-md border border-slate-300">
+                        <button
+                          onClick={() => decreaseQuantity(item.album.id, sticker.id)}
+                          aria-label="Diminuir quantidade"
+                          className="flex size-9 cursor-pointer items-center justify-center rounded-l-md text-slate-700 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-40"
+                          disabled={sticker.quantity <= 1}
+                        >
+                          <Minus className="size-4" />
+                        </button>
+                        <span className="min-w-9 border-x border-slate-300 px-2 text-center text-sm font-semibold leading-9 tabular-nums">
+                          {sticker.quantity}
+                        </span>
+                        <button
+                          onClick={() => increaseQuantity(item.album.id, sticker.id)}
+                          aria-label="Aumentar quantidade"
+                          className="flex size-9 cursor-pointer items-center justify-center rounded-r-md text-slate-700 hover:bg-slate-100"
+                        >
+                          <Plus className="size-4" />
+                        </button>
+                      </div>
+                      <span className="w-20 text-right text-sm font-semibold text-slate-900 tabular-nums">
+                        {formatPrice(sticker.price * sticker.quantity)}
+                      </span>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
         </div>
+
+        <OrderSummary
+          shippingCost={shippingCost}
+          showCouponInput={true}
+          showFinishButton={true}
+          onFinishOrder={handleFinishOrder}
+          finishError={finishError}
+          className="lg:sticky lg:top-24"
+        />
       </div>
-    </>
+    </Page>
   );
 }
 

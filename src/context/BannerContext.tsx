@@ -1,15 +1,13 @@
-import SchoolBanner from "@/components/SchoolBanner";
 import { School } from "@/types/school";
-import { createContext, ReactNode, useContext, useState, JSX, useCallback } from "react";
-
-interface BannerContextType {
-    setSchoolBanner: (school: School) => void;
-    banner: () => JSX.Element | null;
-}
+import { createContext, ReactNode, useContext, useState, useCallback } from "react";
 
 interface SchoolBannerState {
     warning: string | null;
     bgWarningColor: string | null;
+}
+
+interface BannerContextType extends SchoolBannerState {
+    setSchoolBanner: (school: School) => void;
 }
 
 const BannerContext = createContext<BannerContextType | undefined>(undefined);
@@ -34,19 +32,10 @@ export const BannerProvider = ({ children }: { children: ReactNode }) => {
         }
     }, []);
 
-    const banner = () => {
-        return bannerState ? (
-            <SchoolBanner
-                warning={bannerState.warning}
-                bgWarningColor={bannerState.bgWarningColor}
-            />
-        ) : null;
-    }
-
     return (
         <BannerContext.Provider
             value={{
-                banner,
+                ...bannerState,
                 setSchoolBanner
             }}
         >

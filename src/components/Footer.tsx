@@ -1,27 +1,21 @@
-import { Link } from 'react-router-dom'
+import { whatsAppUrl } from '@/lib/contact'
 
 const Footer = () => {
   return (
-    <footer className="bg-primary-50 py-6 mt-10">
-      <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="mb-4 md:mb-0">
-            <p className="text-sm text-gray-600">
-              &copy; {new Date().getFullYear()} Álbuns de Figurinhas Escolares. Todos os direitos reservados.
-            </p>
-          </div>
-          <div className="flex space-x-4">
-            <Link to="/termos" className="text-sm text-gray-600 hover:text-primary-500">
-              Termos de Uso
-            </Link>
-            <Link to="/privacidade" className="text-sm text-gray-600 hover:text-primary-500">
-              Política de Privacidade
-            </Link>
-            <Link to="/contato" className="text-sm text-gray-600 hover:text-primary-500">
-              Contato
-            </Link>
-          </div>
-        </div>
+    <footer className="mt-12 border-t border-slate-200 bg-white">
+      <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 py-6 text-center text-sm text-slate-600 sm:flex-row sm:px-6">
+        <p>&copy; {new Date().getFullYear()} Rei das Figurinhas</p>
+        <p>
+          Dúvidas sobre o seu pedido?{' '}
+          <a
+            href={whatsAppUrl()}
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-primary-700 underline underline-offset-2 hover:text-primary-800"
+          >
+            Fale com a gente no WhatsApp
+          </a>
+        </p>
       </div>
     </footer>
   )

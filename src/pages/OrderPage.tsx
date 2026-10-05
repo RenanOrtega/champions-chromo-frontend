@@ -1,9 +1,13 @@
 import { createOrder } from "@/clients/order";
 import OrderSummary from "@/components/OrderSummary";
+import Page from "@/components/Page";
+import StateMessage from "@/components/StateMessage";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
-import { Loader2, Truck } from "lucide-react";
-import { ChangeEvent, useEffect, useState } from "react";
+import { whatsAppUrl } from "@/lib/contact";
+import { AlertCircle, CircleCheck, Loader2, MessageCircle, ShoppingBag } from "lucide-react";
+import { ChangeEvent, FormEvent, InputHTMLAttributes, useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 
 interface AddressInfo {
     postalCode: string;
@@ -36,11 +40,39 @@ interface ValidationErrors {
     email?: string;
 }
 
+interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
+    id: string;
+    label: string;
+    error?: string;
+    className?: string;
+    trailing?: React.ReactNode;
+}
+
+const Field = ({ id, label, error, className = '', trailing, ...inputProps }: FieldProps) => (
+    <div className={className}>
+        <label htmlFor={id} className="mb-1.5 block text-sm font-medium text-slate-700">
+            {label}
+        </label>
+        <div className="relative">
+            <input
+                id={id}
+                aria-invalid={!!error}
+                aria-describedby={error ? `${id}-error` : undefined}
+                className={`h-11 w-full rounded-md border bg-white px-3 text-base text-slate-900 placeholder:text-slate-400 read-only:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500 ${error ? 'border-red-500' : 'border-slate-300'}`}
+                {...inputProps}
+            />
+            {trailing}
+        </div>
+        {error && <p id={`${id}-error`} className="mt-1 text-sm text-red-700">{error}</p>}
+    </div>
+);
+
 const OrderPage = () => {
     const { itens, clearCart, finalTotal } = useCart();
     const [loading, setLoading] = useState(false);
     const [orderCreated, setOrderCreated] = useState(false);
     const [orderId, setOrderId] = useState<string>('');
+    const [submitError, setSubmitError] = useState<string>('');
     const [isLoadingCep, setIsLoadingCep] = useState<boolean>(false);
     const [cepError, setCepError] = useState<string>('');
     const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
@@ -58,34 +90,35 @@ const OrderPage = () => {
         },
     });
 
-    const WHATSAPP_NUMBER = "5511973719123";
-
     const validateForm = (): boolean => {
         const errors: ValidationErrors = {};
 
         // Validação do nome
         if (!formData.addressInfo.name.trim()) {
-            errors.name = 'Nome é obrigatório';
+            errors.name = 'Informe seu nome';
         }
 
         // Validação do email
         if (!formData.addressInfo.email.trim()) {
-            errors.email = 'Email é obrigatório';
+            errors.email = 'Informe seu email';
         } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.addressInfo.email)) {
-            errors.email = 'Email deve ter um formato válido';
+            errors.email = 'Confira o email, o formato parece incorreto';
         }
 
         setValidationErrors(errors);
         return Object.keys(errors).length === 0;
     };
 
-    const handleCreateOrder = async () => {
+    const handleCreateOrder = async (e?: FormEvent) => {
+        e?.preventDefault();
+
         // Validar formulário antes de prosseguir
         if (!validateForm()) {
             return;
         }
 
         setLoading(true);
+        setSubmitError('');
         try {
             const orderSummaryRequest = {
                 albums: itens.map(item => ({
@@ -108,22 +141,20 @@ const OrderPage = () => {
 
             const response = await createOrder(orderSummaryRequest);
 
-            // Assumindo que a resposta contém o ID do pedido
-            setOrderId(response.id); // Fallback para timestamp se não houver ID
+            setOrderId(response.id);
             setOrderCreated(true);
             clearCart(); // limpa o carrinho após o pedido
         } catch (error) {
             console.error("Erro ao criar pedido:", error);
+            setSubmitError('Não foi possível gerar o pedido. Seus dados continuam aqui, tente de novo.');
         } finally {
             setLoading(false);
         }
     };
 
-    const handleWhatsAppContact = () => {
-        const message = `Olá, meu nome é ${formData.addressInfo.name}%0A%0AGostaria de finalizar o pagamento e envio do meu pedido.%0A%0APedido ID: ${orderId}%0A%0AAguardo o contato para prosseguir.`;
-        const whatsappUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${message}`;
-        window.open(whatsappUrl, '_blank');
-    };
+    const whatsAppOrderUrl = whatsAppUrl(
+        `Olá, meu nome é ${formData.addressInfo.name}\n\nGostaria de finalizar o pagamento e envio do meu pedido.\n\nPedido ID: ${orderId}\n\nAguardo o contato para prosseguir.`
+    );
 
     const formatCep = (value: string): string => {
         const digits = value.replace(/\D/g, '');
@@ -159,7 +190,7 @@ const OrderPage = () => {
                 }
             }));
         } catch (error) {
-            setCepError('Erro ao buscar o CEP');
+            setCepError('Não foi possível buscar o CEP. Preencha o endereço manualmente.');
             console.error('Erro ao buscar o CEP:', error);
         } finally {
             setIsLoadingCep(false);
@@ -199,211 +230,185 @@ const OrderPage = () => {
         }
     };
 
-    return (
-        <div className="md:p-20 p-4 mt-15 md:mt-0">
-            {!orderCreated && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div className="bg-white rounded-lg shadow-sm p-6">
-                        <h2 className="text-xl font-semibold mb-4 flex items-center">
-                            <Truck className="mr-2 h-5 w-5 text-primary-600" />
-                            Dados de Entrega
-                        </h2>
-                        <form>
-                            <div className="space-y-4">
-                                <div>
-                                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Nome *
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="name"
-                                        required
-                                        value={formData.addressInfo.name}
-                                        onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('addressInfo', 'name', e.target.value)}
-                                        className={`w-full px-3 py-2 border rounded-md ${validationErrors.name ? 'border-red-500' : 'border-gray-300'}`}
-                                        readOnly={isLoadingCep}
-                                    />
-                                    {validationErrors.name && <p className="text-red-500 text-xs mt-1">{validationErrors.name}</p>}
-                                </div>
-                                <div>
-                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Email *
-                                    </label>
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        required
-                                        value={formData.addressInfo.email}
-                                        onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('addressInfo', 'email', e.target.value)}
-                                        className={`w-full px-3 py-2 border rounded-md ${validationErrors.email ? 'border-red-500' : 'border-gray-300'}`}
-                                        readOnly={isLoadingCep}
-                                    />
-                                    {validationErrors.email && <p className="text-red-500 text-xs mt-1">{validationErrors.email}</p>}
-                                </div>
-                                <div>
-                                    <label htmlFor="cep" className="block text-sm font-medium text-gray-700 mb-1">
-                                        CEP
-                                    </label>
-                                    <div className="relative">
-                                        <input
-                                            type="text"
-                                            id="cep"
-                                            required
-                                            maxLength={9}
-                                            placeholder="00000-000"
-                                            value={formData.addressInfo.postalCode}
-                                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('addressInfo', 'postalCode', e.target.value)}
-                                            className={`w-full px-3 py-2 border rounded-md ${cepError ? 'border-red-500' : 'border-gray-300'}`}
-                                        />
-                                        {isLoadingCep && (
-                                            <div className="absolute right-3 top-2">
-                                                <Loader2 className="h-5 w-5 animate-spin text-primary-600" />
-                                            </div>
-                                        )}
-                                    </div>
-                                    {cepError && <p className="text-red-500 text-xs mt-1">{cepError}</p>}
-                                </div>
-                                <div className="grid grid-cols-3 gap-4">
-                                    <div className="col-span-2">
-                                        <label htmlFor="street" className="block text-sm font-medium text-gray-700 mb-1">
-                                            Rua
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="street"
-                                            required
-                                            value={formData.addressInfo.street}
-                                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('addressInfo', 'street', e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                            readOnly={isLoadingCep}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label htmlFor="number" className="block text-sm font-medium text-gray-700 mb-1">
-                                            Número
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="number"
-                                            required
-                                            value={formData.addressInfo.number}
-                                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('addressInfo', 'number', e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label htmlFor="complement" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Complemento
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="complement"
-                                        value={formData.addressInfo.complement}
-                                        onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('addressInfo', 'complement', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                        readOnly={isLoadingCep}
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="neighborhood" className="block text-sm font-medium text-gray-700 mb-1">
-                                        Bairro
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="neighborhood"
-                                        required
-                                        value={formData.addressInfo.neighborhood}
-                                        onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('addressInfo', 'neighborhood', e.target.value)}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                        readOnly={isLoadingCep}
-                                    />
-                                </div>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <div>
-                                        <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-                                            Cidade
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="city"
-                                            required
-                                            value={formData.addressInfo.city}
-                                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('addressInfo', 'city', e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                            readOnly={isLoadingCep}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-1">
-                                            Estado
-                                        </label>
-                                        <input
-                                            type="text"
-                                            id="state"
-                                            required
-                                            value={formData.addressInfo.state}
-                                            onChange={(e: ChangeEvent<HTMLInputElement>) => handleInputChange('addressInfo', 'state', e.target.value)}
-                                            className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                                            readOnly={isLoadingCep}
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                    <div>
-                        <OrderSummary
-                            showCouponInput={false}
-                        />
-                        <Button
-                            onClick={handleCreateOrder}
-                            disabled={loading || itens.length === 0}
-                            className="mt-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 cursor-pointer w-full"
-                        >
-                            {loading ? "Gerando pedido..." : "Gerar Pedido"}
-                        </Button>
-                    </div>
-                </div>
-            )}
+    const fieldProps = (field: keyof AddressInfo) => ({
+        value: formData.addressInfo[field],
+        onChange: (e: ChangeEvent<HTMLInputElement>) => handleInputChange('addressInfo', field, e.target.value),
+    });
 
-            {orderCreated && (
-                <div className="mt-4 space-y-4">
-                    <div className="p-4 bg-green-100 border border-green-300 rounded">
-                        <p className="font-medium text-green-800">✅ Seu pedido foi gerado com sucesso!</p>
-                        <p className="text-sm text-green-700 mt-1">
-                            Pedido ID: <span className="font-mono font-bold">#{orderId}</span>
-                        </p>
-                    </div>
-                    <div className="p-4 bg-yellow-100 border border-yellow-300 rounded">
-                        <p className="font-medium text-yellow-800"> ⚠️ Estamos trabalhando para integrar um gateway de pagamento pelo site!</p>
-                        <p className="text-sm text-yellow-700 mt-1">
-                            Por enquanto, estamos trabalhando com uma forma paliativo através do whatsapp para não perdemos os pedidos!
-                        </p>
-                    </div>
-                    <div className="p-4 bg-blue-50 border border-blue-200 rounded">
-                        <p className="font-medium text-blue-800 mb-2">📱 Próximo passo:</p>
-                        <p className="text-sm text-blue-700 mb-3">
-                            Entre em contato conosco pelo WhatsApp para finalizar o pagamento e coordenar o envio do seu pedido.
-                        </p>
+    if (orderCreated) {
+        return (
+            <Page>
+                <div className="mx-auto max-w-md rounded-lg border border-slate-200 bg-white p-6 text-center sm:p-8">
+                    <CircleCheck className="mx-auto size-11 text-green-600" strokeWidth={1.5} />
+                    <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900">Pedido gerado</h1>
+                    <p className="mt-4 text-sm text-slate-600">Número do pedido</p>
+                    <p className="mt-0.5 select-all break-all font-mono text-base font-semibold text-slate-900">{orderId}</p>
 
-                        <Button
-                            onClick={handleWhatsAppContact}
-                            className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors"
+                    <div className="mt-6 border-t border-slate-200 pt-6">
+                        <p className="font-semibold text-slate-900">Falta só um passo</p>
+                        <p className="mt-1 text-sm leading-relaxed text-slate-600">
+                            Chame a gente no WhatsApp para combinar o pagamento e o envio. O número do pedido já vai na mensagem.
+                        </p>
+                        <a
+                            href={whatsAppOrderUrl}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="mt-5 flex h-12 w-full items-center justify-center gap-2 rounded-md bg-green-700 text-base font-semibold text-white transition-colors hover:bg-green-800"
                         >
-                            <span className="text-lg">💬</span>
+                            <MessageCircle className="size-5" />
                             Chamar no WhatsApp
-                        </Button>
-                    </div>
-
-                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded text-center">
-                        <p className="text-xs text-yellow-800">
-                            💡 Tenha o ID do pedido em mãos para agilizar o atendimento
-                        </p>
+                        </a>
                     </div>
                 </div>
-            )}
-        </div>
+            </Page>
+        );
+    }
+
+    if (itens.length === 0) {
+        return (
+            <Page>
+                <StateMessage
+                    icon={ShoppingBag}
+                    title="Seu carrinho está vazio"
+                    description="Adicione figurinhas ao carrinho antes de finalizar o pedido."
+                >
+                    <Button asChild size="lg">
+                        <Link to="/schools">Escolher escola</Link>
+                    </Button>
+                </StateMessage>
+            </Page>
+        );
+    }
+
+    return (
+        <Page showBack title="Finalizar pedido" subtitle="O pagamento e o envio são combinados pelo WhatsApp depois de gerar o pedido.">
+            <div className="grid items-start gap-6 lg:grid-cols-3">
+                <form
+                    id="order-form"
+                    noValidate
+                    onSubmit={handleCreateOrder}
+                    className="rounded-lg border border-slate-200 bg-white p-5 sm:p-6 lg:col-span-2"
+                >
+                    <fieldset>
+                        <legend className="text-base font-semibold text-slate-900">Seus dados</legend>
+                        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+                            <Field
+                                id="name"
+                                label="Nome *"
+                                type="text"
+                                autoComplete="name"
+                                required
+                                error={validationErrors.name}
+                                {...fieldProps('name')}
+                            />
+                            <Field
+                                id="email"
+                                label="Email *"
+                                type="email"
+                                autoComplete="email"
+                                required
+                                error={validationErrors.email}
+                                {...fieldProps('email')}
+                            />
+                        </div>
+                    </fieldset>
+
+                    <fieldset className="mt-6 border-t border-slate-200 pt-6">
+                        <legend className="float-left mb-4 w-full text-base font-semibold text-slate-900">Endereço de entrega</legend>
+                        <div className="clear-both grid grid-cols-6 gap-4">
+                            <Field
+                                id="cep"
+                                label="CEP"
+                                type="text"
+                                inputMode="numeric"
+                                autoComplete="postal-code"
+                                maxLength={9}
+                                placeholder="00000-000"
+                                error={cepError}
+                                className="col-span-6 sm:col-span-2"
+                                trailing={isLoadingCep && (
+                                    <Loader2 className="absolute right-3 top-3 size-5 animate-spin text-primary-600" />
+                                )}
+                                {...fieldProps('postalCode')}
+                            />
+                            <Field
+                                id="street"
+                                label="Rua"
+                                type="text"
+                                autoComplete="address-line1"
+                                readOnly={isLoadingCep}
+                                className="col-span-4 sm:col-span-3"
+                                {...fieldProps('street')}
+                            />
+                            <Field
+                                id="number"
+                                label="Número"
+                                type="text"
+                                inputMode="numeric"
+                                className="col-span-2 sm:col-span-1"
+                                {...fieldProps('number')}
+                            />
+                            <Field
+                                id="complement"
+                                label="Complemento"
+                                type="text"
+                                autoComplete="address-line2"
+                                readOnly={isLoadingCep}
+                                className="col-span-6 sm:col-span-3"
+                                {...fieldProps('complement')}
+                            />
+                            <Field
+                                id="neighborhood"
+                                label="Bairro"
+                                type="text"
+                                readOnly={isLoadingCep}
+                                className="col-span-6 sm:col-span-3"
+                                {...fieldProps('neighborhood')}
+                            />
+                            <Field
+                                id="city"
+                                label="Cidade"
+                                type="text"
+                                autoComplete="address-level2"
+                                readOnly={isLoadingCep}
+                                className="col-span-4"
+                                {...fieldProps('city')}
+                            />
+                            <Field
+                                id="state"
+                                label="Estado"
+                                type="text"
+                                autoComplete="address-level1"
+                                readOnly={isLoadingCep}
+                                className="col-span-2"
+                                {...fieldProps('state')}
+                            />
+                        </div>
+                    </fieldset>
+                </form>
+
+                <div className="lg:sticky lg:top-24">
+                    <OrderSummary
+                        showCouponInput={false}
+                    />
+                    {submitError && (
+                        <p role="alert" className="mt-4 flex items-start gap-2 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+                            <AlertCircle className="mt-0.5 size-4 shrink-0" />
+                            {submitError}
+                        </p>
+                    )}
+                    <Button
+                        type="submit"
+                        form="order-form"
+                        disabled={loading}
+                        className="mt-4 h-12 w-full text-base"
+                    >
+                        {loading && <Loader2 className="size-5 animate-spin" />}
+                        {loading ? "Gerando pedido" : "Gerar pedido"}
+                    </Button>
+                </div>
+            </div>
+        </Page>
     );
 };
 

@@ -1,36 +1,42 @@
-// src/pages/SchoolsPage.tsx
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { School as SchoolIcon, Search } from 'lucide-react'
+import { School as SchoolIcon, Search, SearchX, WifiOff } from 'lucide-react'
 import { fetchSchools } from '../clients/school';
 import { School } from '../types/school';
 
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import Page from '@/components/Page';
+import StateMessage from '@/components/StateMessage';
+import { formatPhone } from '@/lib/format';
+
+const gridClass = "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3";
 
 const SchoolsPage = () => {
   const [schools, setSchools] = useState<School[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
     const loadSchools = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const data = await fetchSchools();
         setSchools(data);
         setLoading(false);
       } catch (err) {
         console.error('Erro ao carregar escolas:', err);
-        setError('Não foi possível carregar a lista de escolas. Tente novamente mais tarde.');
+        setError('Não foi possível carregar a lista de escolas.');
         setLoading(false);
       }
     };
 
     loadSchools();
-  }, []);
+  }, [attempt]);
 
   const filteredSchools = schools.filter(school =>
     school.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -39,83 +45,80 @@ const SchoolsPage = () => {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Selecione a Escola</h1>
-      </div>
-
-      <div className="mb-6 relative">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={20} />
-          <Input
-            type="text"
-            placeholder="Buscar por nome, cidade ou estado..."
-            className="w-full pl-10"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
+    <Page title="Escolha a escola" subtitle="Os álbuns disponíveis mudam de escola para escola.">
+      <div className="relative mb-6 max-w-md">
+        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-500" />
+        <Input
+          type="search"
+          aria-label="Buscar escola"
+          placeholder="Buscar por nome, cidade ou estado"
+          className="h-11 bg-white pl-9"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className={gridClass} aria-busy="true" aria-label="Carregando escolas">
           {[1, 2, 3, 4, 5, 6].map((i) => (
-            <Card key={i}>
-              <div className="h-40 flex items-center justify-center">
-                <Skeleton className="h-32 w-32 rounded-all" />
-              </div>
-              <CardContent className="pt-4">
-                <Skeleton className="h-4 w-3/4 mb-2" />
-                <Skeleton className="h-4 w-3/4 mb-2" />
+            <div key={i} className="flex items-center gap-4 rounded-lg border border-slate-200 bg-white p-4">
+              <Skeleton className="size-16 shrink-0" />
+              <div className="flex-1 space-y-2">
                 <Skeleton className="h-4 w-3/4" />
-              </CardContent>
-            </Card>
+                <Skeleton className="h-3 w-1/2" />
+              </div>
+            </div>
           ))}
         </div>
       ) : error ? (
-        <Alert variant="destructive">
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
+        <StateMessage icon={WifiOff} tone="error" title={error} description="Confira sua conexão e tente de novo.">
+          <Button onClick={() => setAttempt(a => a + 1)}>Tentar de novo</Button>
+        </StateMessage>
+      ) : schools.length === 0 ? (
+        <StateMessage
+          icon={SchoolIcon}
+          title="Nenhuma escola disponível no momento"
+          description="Assim que uma escola abrir pedidos, ela aparece aqui."
+        />
+      ) : filteredSchools.length === 0 ? (
+        <StateMessage
+          icon={SearchX}
+          title={`Nenhuma escola encontrada para "${search}"`}
+          description="Tente buscar só pelo nome da cidade ou por parte do nome da escola."
+        >
+          <Button variant="outline" onClick={() => setSearch('')}>Limpar busca</Button>
+        </StateMessage>
       ) : (
-        <>
-          {filteredSchools.length === 0 ? (
-            <Alert>
-              <AlertDescription>
-                Nenhuma escola encontrada com os critérios de busca.
-              </AlertDescription>
-            </Alert>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredSchools.map((school) => (
-                <Link
-                  to={`/schools/${school.id}/albums`}
-                  key={school.id}
-                  className="block transition-shadow duration-300 hover:opacity-90"
-                >
-                  <Card className="hover:shadow-md border-2 hover:border-primary-200">
-                    <CardHeader className="h-40 flex items-center justify-center bg-muted">
-                      {school.imageUrl ? (
-                        <img
-                          src={school.imageUrl}
-                          alt={school.name}
-                          className="w-45 h-45 object-cover"
-                          loading="lazy"
-                        />
-                      ) : (<SchoolIcon size={64} className="text-muted-foreground" />)}
-                    </CardHeader>
-                    <CardContent className=" bg-white">
-                      <h3 className="font-bold text-lg mb-1">{school.name}</h3>
-                      <p className="text-muted-foreground">{school.city}, {school.state}</p>
-                      <p className="text-muted-foreground text-sm mt-2">{school.phone}</p>
-                    </CardContent>
-                  </Card>'
-                </Link>
-              ))}
-            </div>
-          )}
-        </>
+        <ul className={gridClass}>
+          {filteredSchools.map((school) => (
+            <li key={school.id}>
+              <Link
+                to={`/schools/${school.id}/albums`}
+                className="flex h-full items-center gap-4 rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:border-primary-500"
+              >
+                <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-md bg-slate-100">
+                  {school.imageUrl ? (
+                    <img
+                      src={school.imageUrl}
+                      alt=""
+                      className="size-full object-cover"
+                      loading="lazy"
+                    />
+                  ) : (<SchoolIcon className="size-7 text-slate-400" strokeWidth={1.5} />)}
+                </div>
+                <div className="min-w-0">
+                  <h2 className="font-semibold leading-snug text-slate-900">{school.name}</h2>
+                  <p className="mt-0.5 text-sm text-slate-600">{school.city}, {school.state}</p>
+                  {school.phone && (
+                    <p className="mt-0.5 text-sm text-slate-500 tabular-nums">{formatPhone(school.phone)}</p>
+                  )}
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
       )}
-    </div>
+    </Page>
   );
 };
 

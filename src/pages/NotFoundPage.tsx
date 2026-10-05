@@ -1,22 +1,21 @@
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import Page from "@/components/Page";
 
 const NotFoundPage = () => {
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen px-4">
-            <div className="text-center max-w-md">
-                <h1 className="text-6xl font-bold text-red-500 mb-2">404</h1>
-                <h2 className="text-2xl font-semibold text-gray-800 mb-4">Página não encontrada</h2>
-                <p className="text-gray-600 mb-8">
+        <Page>
+            <div className="mx-auto max-w-sm py-16 text-center">
+                <p className="text-sm font-semibold text-secondary-500 tabular-nums">Erro 404</p>
+                <h1 className="mt-2 text-2xl font-bold tracking-tight text-slate-900">Página não encontrada</h1>
+                <p className="mt-2 text-slate-600">
                     A página que você está procurando não existe ou foi movida.
                 </p>
-                <Link
-                    to="/"
-                    className="bg-primary-500 hover:bg-primary-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
-                >
-                    Voltar para a página inicial
-                </Link>
+                <Button asChild size="lg" className="mt-6">
+                    <Link to="/">Voltar para a página inicial</Link>
+                </Button>
             </div>
-        </div>
+        </Page>
     )
 }
 
