@@ -8,6 +8,7 @@ import { CartProvider } from "./context/CartContext";
 import CartPage from "./pages/CartPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import OrderPage from "./pages/OrderPage";
+import PaymentPage from "./pages/PaymentPage";
 import { BannerProvider } from "./context/BannerContext";
 
 function App() {
@@ -22,6 +23,7 @@ function App() {
             <Route path="albums/:albumId/figurinhas" element={<StickersPage />} />
             <Route path="cart" element={<CartPage />} />
             <Route path="order" element={<OrderPage />} />
+            <Route path="pedido/:orderId/pagamento" element={<PaymentPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>
