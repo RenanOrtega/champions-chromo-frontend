@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { PixPayment } from "@/types/payment";
 import { isAxiosError } from "axios";
 import { CheckCircle2, Copy, Loader2, QrCode, RefreshCw } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 
 const WHATSAPP_NUMBER = "5511973719123";
@@ -53,14 +53,22 @@ const PaymentPage = () => {
     const isExpired = payment?.status === "expired" || payment?.status === "cancelled"
         || (payment?.status === "awaitingPayment" && timeExpired);
 
+    // Only one Pix request at a time (React StrictMode runs effects twice in dev, and users double click).
+    const pixRequest = useRef<Promise<PixPayment> | null>(null);
+
     const generatePix = useCallback(async () => {
+        if (pixRequest.current) return;
+
         setLoading(true);
         setError("");
+        pixRequest.current = createPixPayment(orderId);
         try {
-            setPayment(await createPixPayment(orderId));
+            setPayment(await pixRequest.current);
+            setError("");
         } catch (e) {
             setError(errorMessage(e));
         } finally {
+            pixRequest.current = null;
             setLoading(false);
         }
     }, [orderId]);
