@@ -37,7 +37,7 @@ interface ValidationErrors {
 }
 
 const OrderPage = () => {
-    const { itens, clearCart, finalTotal } = useCart();
+    const { itens, clearCart, finalTotal, appliedCoupon } = useCart();
     const [loading, setLoading] = useState(false);
     const [orderCreated, setOrderCreated] = useState(false);
     const [orderId, setOrderId] = useState<string>('');
@@ -103,7 +103,9 @@ const OrderPage = () => {
                     email: formData.addressInfo.email,
                     address: formData.addressInfo
                 },
-                priceTotal: finalTotal()
+                // O backend recalcula o total; o código do cupom vai para ele aplicar o desconto.
+                priceTotal: finalTotal(),
+                couponCode: appliedCoupon?.code
             };
 
             const response = await createOrder(orderSummaryRequest);

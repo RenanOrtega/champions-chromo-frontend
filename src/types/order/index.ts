@@ -2,6 +2,7 @@ export interface OrderSummary {
     albums: AlbumOrder[]
     customer: Customer
     priceTotal: number
+    couponCode?: string
 }
 
 export type Customer = {
