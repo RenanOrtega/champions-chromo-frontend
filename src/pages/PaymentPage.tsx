@@ -1,6 +1,7 @@
 import { createPixPayment, getPaymentStatus } from "@/clients/payment";
 import { Button } from "@/components/ui/button";
 import { PixPayment } from "@/types/payment";
+import { usePaymentMode } from "@/hooks/usePaymentMode";
 import { isAxiosError } from "axios";
 import { CheckCircle2, Copy, Loader2, QrCode, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -48,6 +49,7 @@ const PaymentPage = () => {
     const [error, setError] = useState("");
     const [copied, setCopied] = useState(false);
 
+    const { mode: paymentMode } = usePaymentMode();
     const { expired: timeExpired, label: countdown } = useCountdown(payment?.expiresAt);
     const isPaid = payment?.status === "paid";
     const isExpired = payment?.status === "expired" || payment?.status === "cancelled"
@@ -74,8 +76,9 @@ const PaymentPage = () => {
     }, [orderId]);
 
     useEffect(() => {
-        generatePix();
-    }, [generatePix]);
+        if (paymentMode === 'mercadoPagoPix') generatePix();
+        else if (paymentMode === 'manual') setLoading(false);
+    }, [generatePix, paymentMode]);
 
     // Polls while the customer is paying. The backend is updated by the Mercado Pago webhook.
     useEffect(() => {
@@ -115,6 +118,13 @@ const PaymentPage = () => {
                     <p className="text-sm text-gray-500">
                         Pedido <span className="font-mono font-bold">#{orderId}</span>
                     </p>
+
+                    {paymentMode === 'manual' && (
+                        <div className="py-8 space-y-3 text-gray-700">
+                            <p>O pagamento pelo site está desativado no momento.</p>
+                            <p className="text-sm">Fale com a gente pelo WhatsApp para finalizar este pedido.</p>
+                        </div>
+                    )}
 
                     {loading && !payment && (
                         <div className="py-12 flex flex-col items-center gap-3 text-gray-600">

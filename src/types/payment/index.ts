@@ -16,3 +16,9 @@ export interface PixPayment {
     expiresAt?: string | null
     paidAt?: string | null
 }
+
+export type PaymentMode = 'manual' | 'mercadoPagoPix'
+
+export interface PaymentConfig {
+    mode: PaymentMode
+}

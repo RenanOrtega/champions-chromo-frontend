@@ -5,6 +5,8 @@ import { useCart } from "@/context/CartContext";
 import { Loader2, Truck } from "lucide-react";
 import { ChangeEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import ManualOrderConfirmation from "@/components/ManualOrderConfirmation";
+import { usePaymentMode } from "@/hooks/usePaymentMode";
 
 interface AddressInfo {
     postalCode: string;
@@ -42,6 +44,8 @@ const OrderPage = () => {
     const [loading, setLoading] = useState(false);
     const [orderError, setOrderError] = useState<string>('');
     const navigate = useNavigate();
+    const { mode: paymentMode, loading: loadingPaymentMode } = usePaymentMode();
+    const [manualOrderId, setManualOrderId] = useState<string>('');
     const [isLoadingCep, setIsLoadingCep] = useState<boolean>(false);
     const [cepError, setCepError] = useState<string>('');
     const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
@@ -111,7 +115,12 @@ const OrderPage = () => {
             const response = await createOrder(orderSummaryRequest);
 
             clearCart(); // limpa o carrinho após o pedido
-            navigate(`/pedido/${response.id}/pagamento`);
+
+            if (paymentMode === 'mercadoPagoPix') {
+                navigate(`/pedido/${response.id}/pagamento`);
+            } else {
+                setManualOrderId(response.id);
+            }
         } catch (error) {
             console.error("Erro ao criar pedido:", error);
             setOrderError('Não foi possível gerar o pedido. Confira os dados e tente novamente.');
@@ -193,6 +202,14 @@ const OrderPage = () => {
             setValidationErrors(prev => ({ ...prev, email: undefined }));
         }
     };
+
+    if (manualOrderId) {
+        return (
+            <div className="md:p-20 p-4 mt-15 md:mt-0">
+                <ManualOrderConfirmation orderId={manualOrderId} customerName={formData.addressInfo.name} />
+            </div>
+        );
+    }
 
     return (
         <div className="md:p-20 p-4 mt-15 md:mt-0">
@@ -352,10 +369,12 @@ const OrderPage = () => {
                     />
                     <Button
                         onClick={handleCreateOrder}
-                        disabled={loading || itens.length === 0}
+                        disabled={loading || loadingPaymentMode || itens.length === 0}
                         className="mt-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50 cursor-pointer w-full"
                     >
-                        {loading ? "Gerando pedido..." : "Ir para o pagamento com Pix"}
+                        {loading
+                            ? "Gerando pedido..."
+                            : paymentMode === 'mercadoPagoPix' ? "Ir para o pagamento com Pix" : "Gerar Pedido"}
                     </Button>
                     {orderError && <p className="text-red-600 text-sm mt-2">{orderError}</p>}
                 </div>
