@@ -23,8 +23,14 @@ const Navbar = () => {
             <Link to="/" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary-500">
               Início
             </Link>
-            <Link to="/schools" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary-500">
-              Escolas
+            <Link to="/#albuns" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary-500">
+              Álbuns
+            </Link>
+            <Link to="/#contato" className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary-500">
+              Contato
+            </Link>
+            <Link to="/schools" className="px-4 py-2 rounded-full text-sm font-semibold text-white bg-secondary-600 hover:bg-secondary-700">
+              Comprar figurinhas
             </Link>
             <Link to="/cart" className="flex items-center px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-primary-500">
               <div className="relative">
@@ -77,11 +83,25 @@ const Navbar = () => {
               Início
             </Link>
             <Link
-              to="/schools"
+              to="/#albuns"
               className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-500"
               onClick={() => setIsMenuOpen(false)}
             >
-              Escolas
+              Álbuns
+            </Link>
+            <Link
+              to="/#contato"
+              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-primary-500"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Contato
+            </Link>
+            <Link
+              to="/schools"
+              className="block px-3 py-2 rounded-md text-base font-semibold text-secondary-600 hover:text-secondary-700"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              Comprar figurinhas
             </Link>
           </div>
         </div>

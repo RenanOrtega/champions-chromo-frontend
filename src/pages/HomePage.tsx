@@ -1,83 +1,174 @@
-import { Link } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Link, useLocation } from 'react-router-dom'
+import { Instagram, Mail, MessageCircle } from 'lucide-react'
+import { albums, contact, hero, segments, steps } from '../content/home'
+
+const sectionTitle = 'font-display font-extrabold text-3xl md:text-4xl leading-tight text-slate-800'
 
 const HomePage = () => {
+  const { hash } = useLocation()
+
+  useEffect(() => {
+    if (!hash) return
+    document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' })
+  }, [hash])
+
+  const whatsappHref = contact.whatsapp ? `https://wa.me/${contact.whatsapp}` : undefined
+  const instagramHref = contact.instagram ? `https://instagram.com/${contact.instagram}` : undefined
+
   return (
-    <div className="flex flex-col space-y-10 py-4 mx-5 mt-15">
-      <section className="bg-primary-500 rounded-lg p-6 md:p-10 text-white relative overflow-hidden">
-        <div className="absolute inset-0 bg-cover bg-center opacity-2" 
-             style={{ backgroundImage: "url('/logo.png')" }}></div>
-        <div className="relative z-10">
-          <h1 className="text-3xl md:text-4xl font-bold mb-4">
-            Quer completar seu álbum de figurinhas?
-          </h1>
-          <p className="text-lg mb-6">
-            Sem problemas, só fazer seu pedido!
-          </p>
+    <div className="mt-16 -mb-10 bg-white">
+      <section className="bg-[#E6F7F6]">
+        <div className="max-w-6xl mx-auto px-4 py-12 md:py-20 flex flex-col md:flex-row items-center gap-10 md:gap-14">
+          <div className="flex-1 flex flex-col gap-5">
+            <p className="text-xs md:text-sm font-semibold tracking-widest uppercase text-teal-800">{hero.eyebrow}</p>
+            <h1 className="font-display font-extrabold text-4xl md:text-5xl lg:text-6xl leading-[1.05] text-slate-800">
+              {hero.title}
+            </h1>
+            <p className="text-base md:text-lg leading-relaxed text-slate-600">{hero.text}</p>
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <a
+                href="#contato"
+                className="text-center bg-secondary-600 hover:bg-secondary-700 text-white font-semibold px-7 py-4 rounded-full transition-colors"
+              >
+                Quero um álbum
+              </a>
+              <Link
+                to="/schools"
+                className="text-center bg-white text-teal-800 border-2 border-teal-800 hover:bg-teal-50 font-semibold px-7 py-3.5 rounded-full transition-colors"
+              >
+                Comprar figurinhas
+              </Link>
+            </div>
+          </div>
+          <img
+            src={hero.image}
+            alt="Álbuns de figurinhas feitos pelo Rei das Figurinhas"
+            width={1200}
+            height={900}
+            className="flex-1 w-full md:w-auto md:max-w-[50%] aspect-[4/3] object-cover rounded-2xl"
+          />
+        </div>
+      </section>
+
+      <section className="max-w-6xl mx-auto px-4 pt-16 md:pt-24 pb-8 flex flex-col gap-8 md:gap-10">
+        <div className="flex flex-col gap-3 max-w-2xl">
+          <h2 className={sectionTitle}>Para quem fazemos</h2>
+          <p className="text-slate-600 md:text-lg">Cada álbum é desenhado do zero, com as fotos e a identidade de quem encomenda.</p>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {segments.map((s) => (
+            <article key={s.title} className="flex md:flex-col gap-4 items-center md:items-stretch">
+              <img
+                src={s.image}
+                alt={s.title}
+                width={800}
+                height={600}
+                loading="lazy"
+                className="w-32 md:w-full shrink-0 aspect-[4/3] object-cover rounded-xl"
+              />
+              <div className="flex flex-col gap-1 md:gap-2">
+                <h3 className="font-display font-extrabold text-xl md:text-2xl text-slate-800">{s.title}</h3>
+                <p className="text-sm md:text-base text-slate-600 leading-relaxed">{s.text}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="albuns" className="scroll-mt-20 max-w-6xl mx-auto px-4 py-16 md:py-20 flex flex-col gap-8 md:gap-10">
+        <div className="flex flex-col gap-3 max-w-2xl">
+          <h2 className={sectionTitle}>Álbuns que já fizemos</h2>
+          <p className="text-slate-600 md:text-lg">Alguns dos nossos trabalhos recentes.</p>
+        </div>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-7">
+          {albums.map((a, i) => (
+            <article key={i} className="flex flex-col gap-2 md:gap-3">
+              <img
+                src={a.image}
+                alt={`Álbum ${a.name}`}
+                width={800}
+                height={1000}
+                loading="lazy"
+                className="w-full aspect-[4/5] object-cover rounded-xl"
+              />
+              <div className="flex flex-col md:flex-row md:justify-between md:items-baseline gap-1">
+                <h3 className="text-sm md:text-lg font-semibold text-slate-800">{a.name}</h3>
+                <span className="self-start text-xs md:text-sm font-semibold text-teal-800 bg-[#E6F7F6] px-2.5 py-1 rounded-full">
+                  {a.tag}
+                </span>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="como-funciona" className="scroll-mt-20 bg-slate-50 border-y border-slate-200">
+        <div className="max-w-6xl mx-auto px-4 py-16 md:py-20 flex flex-col gap-8 md:gap-10">
+          <h2 className={sectionTitle}>Como funciona</h2>
+          <ol className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+            {steps.map((st, i) => (
+              <li key={st.title} className="flex md:flex-col gap-4 md:gap-3 items-start">
+                <span className="shrink-0 w-11 h-11 md:w-12 md:h-12 rounded-full bg-teal-700 text-white flex items-center justify-center font-display font-extrabold text-xl">
+                  {i + 1}
+                </span>
+                <div className="flex flex-col gap-1">
+                  <h3 className="font-semibold text-lg text-slate-800">{st.title}</h3>
+                  <p className="text-sm md:text-base text-slate-600 leading-relaxed">{st.text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
+      <section className="max-w-6xl mx-auto px-4 py-12 md:py-20">
+        <div className="bg-secondary-50 rounded-3xl p-6 md:p-12 flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+          <div className="flex flex-col gap-2">
+            <h2 className="font-display font-extrabold text-2xl md:text-3xl text-slate-800">Já tem o álbum da escola?</h2>
+            <p className="text-slate-600 md:text-lg">Escolha a escola, marque as figurinhas que faltam e pague pelo Pix.</p>
+          </div>
           <Link
             to="/schools"
-            className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-xs bg-secondary-400 text-white hover:bg-secondary-500 transition-colors"
+            className="text-center shrink-0 bg-secondary-600 hover:bg-secondary-700 text-white font-semibold px-8 py-4 rounded-full transition-colors"
           >
-            Pedidos Aqui!
+            Comprar figurinhas
           </Link>
         </div>
       </section>
 
-      <section className="py-4">
-        <h2 className="text-2xl font-bold mb-6 text-center text-gray-800">Como funciona</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="flex flex-col items-center">
-            <div className="bg-primary-100 rounded-full p-4 mb-4">
-              <svg className="w-10 h-10 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold mb-2 text-gray-800">Selecione a escola</h3>
-            <p className="text-gray-600 text-center">
-              Escolha a escola do seu filho para ver os álbuns disponíveis.
-            </p>
+      <section id="contato" className="scroll-mt-16 bg-slate-800 text-slate-100">
+        <div className="max-w-6xl mx-auto px-4 py-16 md:py-20 flex flex-col md:flex-row gap-10 md:gap-12 md:justify-between">
+          <div className="flex-1 flex flex-col gap-3">
+            <h2 className="font-display font-extrabold text-3xl md:text-4xl leading-tight text-white">Vamos fazer o seu álbum?</h2>
+            <p className="text-slate-300 md:text-lg">Conte para a gente o que você imagina e mandamos uma proposta.</p>
           </div>
-          <div className="flex flex-col items-center">
-            <div className="bg-primary-100 rounded-full p-4 mb-4">
-              <svg className="w-10 h-10 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold mb-2 text-gray-800">Escolha o Álbum</h3>
-            <p className="text-gray-600 text-center">
-              Selecione entre os modelos disponíveis para a escola.
-            </p>
-          </div>
-          <div className="flex flex-col items-center">
-            <div className="bg-primary-100 rounded-full p-4 mb-4">
-              <svg className="w-10 h-10 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </div>
-            <h3 className="text-xl font-semibold mb-2 text-gray-800">Personalize e Compre</h3>
-            <p className="text-gray-600 text-center">
-              Selecione as figurinhas que deseja incluir e finalize o pagamento.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="bg-gradient-to-br from-secondary-100 to-secondary-200 rounded-lg p-6 md:p-8">
-        <div className="flex flex-col md:flex-row items-center gap-6">
-          <div className="flex-1">
-            <h2 className="text-2xl font-bold mb-4 text-gray-800">Lembranças que duram para sempre</h2>
-            <p className="text-gray-700 mb-4">
-              Nossos álbuns de figurinhas escolares são a maneira perfeita de preservar as memórias dos anos escolares do seu filho.
-            </p>
-            <p className="text-gray-700">
-              Com fotos de alta qualidade e design personalizado para cada escola, estes álbuns se tornarão tesouros de família.
-            </p>
-          </div>
-          <div className="flex-1 flex justify-center">
-            <img 
-              src="/logo.png" 
-              alt="Rei das Figurinhas" 
-              className="max-w-[200px] md:max-w-[250px] h-auto"
-            />
+          <div className="flex-1 flex flex-col gap-3 md:max-w-sm">
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-3 bg-[#25D366] text-[#0B2B17] font-semibold px-5 py-4 rounded-2xl"
+            >
+              <MessageCircle className="h-5 w-5" aria-hidden="true" />
+              WhatsApp: {contact.whatsappLabel}
+            </a>
+            <a
+              href={instagramHref}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-3 border border-slate-600 hover:border-slate-400 px-5 py-4 rounded-2xl"
+            >
+              <Instagram className="h-5 w-5" aria-hidden="true" />
+              Instagram: {contact.instagram ? `@${contact.instagram}` : '@perfil'}
+            </a>
+            <a
+              href={contact.email ? `mailto:${contact.email}` : undefined}
+              className="flex items-center gap-3 border border-slate-600 hover:border-slate-400 px-5 py-4 rounded-2xl"
+            >
+              <Mail className="h-5 w-5" aria-hidden="true" />
+              E-mail: {contact.email || 'contato@dominio.com.br'}
+            </a>
           </div>
         </div>
       </section>
