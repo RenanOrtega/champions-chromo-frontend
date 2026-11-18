@@ -10,10 +10,12 @@ import OrderSummary from '../components/OrderSummary';
 import { useCart } from '@/context/CartContext';
 import { stickerTypeInfo } from '@/types/album';
 import { useSchoolBanner } from '@/context/BannerContext';
+import { usePageMeta } from '@/lib/seo';
 
 const CartPage = () => {
   const navigate = useNavigate();
   const { banner } = useSchoolBanner();
+  usePageMeta({ title: 'Carrinho', noindex: true });
   const {
     itens,
     removeFromCart,

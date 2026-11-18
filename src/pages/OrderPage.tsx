@@ -6,6 +6,7 @@ import { Loader2, Truck } from "lucide-react";
 import { ChangeEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ManualOrderConfirmation from "@/components/ManualOrderConfirmation";
+import { usePageMeta } from "@/lib/seo";
 import { usePaymentMode } from "@/hooks/usePaymentMode";
 
 interface AddressInfo {
@@ -44,6 +45,7 @@ const OrderPage = () => {
     const [loading, setLoading] = useState(false);
     const [orderError, setOrderError] = useState<string>('');
     const navigate = useNavigate();
+    usePageMeta({ title: 'Finalizar pedido', noindex: true });
     const { mode: paymentMode, loading: loadingPaymentMode } = usePaymentMode();
     const [manualOrderId, setManualOrderId] = useState<string>('');
     const [isLoadingCep, setIsLoadingCep] = useState<boolean>(false);

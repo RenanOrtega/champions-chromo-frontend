@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext';
 import { fetchAlbumById } from '../clients/album';
 import { Album, Sticker } from '../types/album';
 import { useSchoolBanner } from '@/context/BannerContext';
+import { usePageMeta } from '@/lib/seo';
 
 const defaultStickerPrices = {
   'common': 1,
@@ -56,6 +57,14 @@ const StickersPage = () => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { banner } = useSchoolBanner();
+
+  usePageMeta({
+    title: album ? `Figurinhas do álbum ${album.name}` : 'Figurinhas do álbum',
+    description: album
+      ? `Compre as figurinhas que faltam no álbum ${album.name}. Escolha as figurinhas, adicione ao carrinho e pague por Pix.`
+      : undefined,
+    image: album?.coverImage || undefined,
+  });
 
   const [showSuccess, setShowSuccess] = useState(false);
 
