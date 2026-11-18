@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&display=swap');
 @import 'tailwindcss';
 @import "tw-animate-css";
 /*
@@ -33,6 +34,7 @@
   --color-tertiary: #E11D48;
 
   --font-sans: Inter, sans-serif;
+  --font-display: "Baloo 2", sans-serif;
 }
 
 /*
