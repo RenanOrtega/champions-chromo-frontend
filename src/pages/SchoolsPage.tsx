@@ -9,12 +9,18 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { usePageMeta } from '@/lib/seo';
 
 const SchoolsPage = () => {
   const [schools, setSchools] = useState<School[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  usePageMeta({
+    title: 'Escolas com álbum de figurinha',
+    description: 'Encontre a escola do seu filho e veja os álbuns de figurinhas disponíveis. Compre as figurinhas que faltam online, com pagamento por Pix.',
+  });
 
   useEffect(() => {
     const loadSchools = async () => {
@@ -97,7 +103,7 @@ const SchoolsPage = () => {
                       {school.imageUrl ? (
                         <img
                           src={school.imageUrl}
-                          alt={school.name}
+                          alt={`Logo da escola ${school.name}`}
                           className="w-45 h-45 object-cover"
                           loading="lazy"
                         />
@@ -108,7 +114,7 @@ const SchoolsPage = () => {
                       <p className="text-muted-foreground">{school.city}, {school.state}</p>
                       <p className="text-muted-foreground text-sm mt-2">{school.phone}</p>
                     </CardContent>
-                  </Card>'
+                  </Card>
                 </Link>
               ))}
             </div>

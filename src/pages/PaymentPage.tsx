@@ -6,6 +6,7 @@ import { isAxiosError } from "axios";
 import { CheckCircle2, Copy, Loader2, QrCode, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+import { usePageMeta } from "@/lib/seo";
 
 const WHATSAPP_NUMBER = "5511973719123";
 const POLL_INTERVAL_MS = 5000;
@@ -44,6 +45,7 @@ const useCountdown = (expiresAt?: string | null) => {
 
 const PaymentPage = () => {
     const { orderId = "" } = useParams();
+    usePageMeta({ title: "Pagamento", noindex: true });
     const [payment, setPayment] = useState<PixPayment | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");

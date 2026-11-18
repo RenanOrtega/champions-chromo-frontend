@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
+import { usePageMeta } from "@/lib/seo";
 
 const NotFoundPage = () => {
+    usePageMeta({ title: 'Página não encontrada', noindex: true });
     return (
         <div className="flex flex-col items-center justify-center min-h-screen px-4">
             <div className="text-center max-w-md">

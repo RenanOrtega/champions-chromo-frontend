@@ -11,6 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { useSchoolBanner } from '@/context/BannerContext';
 import { fetchSchoolById } from '@/clients/school';
+import { usePageMeta } from '@/lib/seo';
 
 const AlbumPage = () => {
   const { schoolId } = useParams<{ schoolId: string }>();
@@ -20,6 +21,15 @@ const AlbumPage = () => {
   const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
   const navigate = useNavigate();
   const { banner, setSchoolBanner } = useSchoolBanner();
+  const [schoolName, setSchoolName] = useState<string | null>(null);
+  const [schoolPlace, setSchoolPlace] = useState<string | null>(null);
+
+  usePageMeta({
+    title: schoolName ? `Álbum de figurinha ${schoolName}` : 'Álbuns de figurinha da escola',
+    description: schoolName
+      ? `Álbuns de figurinhas da escola ${schoolName}${schoolPlace ? ` (${schoolPlace})` : ''}. Escolha o álbum e compre as figurinhas que faltam online, com pagamento por Pix.`
+      : undefined,
+  });
   useEffect(() => {
     const getAlbums = async () => {
       try {
@@ -30,6 +40,8 @@ const AlbumPage = () => {
 
         const schoolData = await fetchSchoolById(schoolId);
         setSchoolBanner(schoolData);
+        setSchoolName(schoolData.name);
+        setSchoolPlace([schoolData.city, schoolData.state].filter(Boolean).join(', ') || null);
 
         const albums = await fetchAlbumsBySchoolId(schoolId);
         setAlbums(albums);
@@ -154,7 +166,7 @@ const AlbumPage = () => {
                           <>
                             <img
                               src={album.coverImage}
-                              alt={album.name}
+                              alt={`Capa do álbum de figurinhas ${album.name}`}
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                               onError={() => handleImageError(album.id)}
                               loading="lazy"
